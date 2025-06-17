@@ -12,7 +12,8 @@ import jakarta.jms.Session;
 import jakarta.naming.Context;
 import jakarta.naming.InitialContext;
 
-import org.apache.flink.api.common.functions.RichSourceFunction;
+import org.apache.flink.streaming.api.functions.source.RichSourceFunction;
+import org.apache.flink.streaming.api.functions.source.SourceFunction.SourceContext;
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.table.data.RowData;

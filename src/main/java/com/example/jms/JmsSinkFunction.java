@@ -8,10 +8,10 @@ import jakarta.jms.ConnectionFactory;
 import jakarta.jms.Destination;
 import jakarta.jms.MessageProducer;
 import jakarta.jms.Session;
-import jakarta.naming.Context;
 import jakarta.naming.InitialContext;
 
-import org.apache.flink.api.common.functions.RichSinkFunction;
+import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
+import org.apache.flink.streaming.api.functions.sink.SinkFunction;
 import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.table.data.RowData;
@@ -44,9 +44,9 @@ public class JmsSinkFunction extends RichSinkFunction<RowData> {
     @Override
     public void open(Configuration parameters) throws Exception {
         Properties props = new Properties();
-        props.setProperty(Context.INITIAL_CONTEXT_FACTORY, contextFactory);
-        props.setProperty(Context.PROVIDER_URL, providerUrl);
-        Context ctx = new InitialContext(props);
+        props.setProperty(jakarta.naming.Context.INITIAL_CONTEXT_FACTORY, contextFactory);
+        props.setProperty(jakarta.naming.Context.PROVIDER_URL, providerUrl);
+        jakarta.naming.Context ctx = new InitialContext(props);
         ConnectionFactory factory = (ConnectionFactory) ctx.lookup("ConnectionFactory");
         Destination destination = (Destination) ctx.lookup(destinationName);
         connection = factory.createConnection();
@@ -56,7 +56,7 @@ public class JmsSinkFunction extends RichSinkFunction<RowData> {
     }
 
     @Override
-    public void invoke(RowData value, Context context) throws Exception {
+    public void invoke(RowData value, SinkFunction.Context context) throws Exception {
         byte[] bytes = serializer.serialize(value);
         BytesMessage message = session.createBytesMessage();
         message.writeBytes(bytes);
