@@ -4,14 +4,18 @@ import java.util.Set;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
+import org.apache.flink.api.common.serialization.DeserializationSchema;
+import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.apache.flink.table.connector.format.DecodingFormat;
 import org.apache.flink.table.connector.format.EncodingFormat;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.source.DynamicTableSource;
-import org.apache.flink.table.factories.DynamicTableFactory;
+import org.apache.flink.table.factories.DecodingFormatFactory;
 import org.apache.flink.table.factories.DynamicTableSinkFactory;
 import org.apache.flink.table.factories.DynamicTableSourceFactory;
+import org.apache.flink.table.factories.EncodingFormatFactory;
 import org.apache.flink.table.factories.FactoryUtil;
+import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.DataType;
 
 /**
@@ -55,8 +59,10 @@ public class JmsTableFactory implements DynamicTableSourceFactory, DynamicTableS
     public DynamicTableSource createDynamicTableSource(Context context) {
         FactoryUtil.TableFactoryHelper helper = FactoryUtil.createTableFactoryHelper(this, context);
 
-        DecodingFormat<?> decodingFormat = helper.discoverDecodingFormat(
-                DynamicTableFactory.class, "format");
+        DecodingFormat<DeserializationSchema<RowData>> decodingFormat =
+                helper.discoverDecodingFormat(
+                        DecodingFormatFactory.class,
+                        FactoryUtil.FORMAT);
 
         DataType dataType = context.getCatalogTable().getResolvedSchema().toPhysicalRowDataType();
 
@@ -70,14 +76,16 @@ public class JmsTableFactory implements DynamicTableSourceFactory, DynamicTableS
     public DynamicTableSink createDynamicTableSink(Context context) {
         FactoryUtil.TableFactoryHelper helper = FactoryUtil.createTableFactoryHelper(this, context);
 
-        EncodingFormat<?> encodingFormat = helper.discoverEncodingFormat(
-                DynamicTableFactory.class, "format");
+        EncodingFormat<SerializationSchema<RowData>> encodingFormat =
+                helper.discoverEncodingFormat(
+                        EncodingFormatFactory.class,
+                        FactoryUtil.FORMAT);
 
         DataType dataType = context.getCatalogTable().getResolvedSchema().toPhysicalRowDataType();
 
         // validation
         helper.validate();
 
-        return new JmsDynamicSink(dataType);
+        return new JmsDynamicSink(encodingFormat, dataType);
     }
 }
