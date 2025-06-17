@@ -68,10 +68,15 @@ public class JmsTableFactory implements DynamicTableSourceFactory, DynamicTableS
 
         DataType dataType = context.getCatalogTable().getResolvedSchema().toPhysicalRowDataType();
 
+        String contextFactory = helper.getOptions().get(INITIAL_CONTEXT_FACTORY);
+        String providerUrl = helper.getOptions().get(PROVIDER_URL);
+        String destination = helper.getOptions().get(DESTINATION);
+
         // validation
         helper.validate();
 
-        return new JmsDynamicSource(decodingFormat, dataType);
+        return new JmsDynamicSource(
+                decodingFormat, dataType, contextFactory, providerUrl, destination);
     }
 
     @Override
@@ -85,9 +90,14 @@ public class JmsTableFactory implements DynamicTableSourceFactory, DynamicTableS
 
         DataType dataType = context.getCatalogTable().getResolvedSchema().toPhysicalRowDataType();
 
+        String contextFactory = helper.getOptions().get(INITIAL_CONTEXT_FACTORY);
+        String providerUrl = helper.getOptions().get(PROVIDER_URL);
+        String destination = helper.getOptions().get(DESTINATION);
+
         // validation
         helper.validate();
 
-        return new JmsDynamicSink(encodingFormat, dataType);
+        return new JmsDynamicSink(
+                encodingFormat, dataType, contextFactory, providerUrl, destination);
     }
 }
