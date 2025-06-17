@@ -52,7 +52,9 @@ public class JmsTableFactory implements DynamicTableSourceFactory, DynamicTableS
 
     @Override
     public Set<ConfigOption<?>> optionalOptions() {
-        return Set.of();
+        // Allow specifying a data format such as 'json'
+        // so users can define 'format' in the WITH clause.
+        return Set.of(FactoryUtil.FORMAT);
     }
 
     @Override
