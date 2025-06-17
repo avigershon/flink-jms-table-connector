@@ -1,6 +1,7 @@
 package com.example.jms;
 
 import org.apache.flink.table.connector.ChangelogMode;
+import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.table.connector.format.DecodingFormat;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.connector.source.ScanTableSource;
@@ -12,10 +13,12 @@ import org.apache.flink.table.types.DataType;
  */
 public class JmsDynamicSource implements ScanTableSource {
 
-    private final DecodingFormat<?> decodingFormat;
+    private final DecodingFormat<DeserializationSchema<RowData>> decodingFormat;
     private final DataType producedDataType;
 
-    public JmsDynamicSource(DecodingFormat<?> decodingFormat, DataType producedDataType) {
+    public JmsDynamicSource(
+            DecodingFormat<DeserializationSchema<RowData>> decodingFormat,
+            DataType producedDataType) {
         this.decodingFormat = decodingFormat;
         this.producedDataType = producedDataType;
     }

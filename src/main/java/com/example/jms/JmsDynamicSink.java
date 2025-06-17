@@ -1,9 +1,12 @@
 package com.example.jms;
 
 import org.apache.flink.table.connector.ChangelogMode;
+import org.apache.flink.api.common.serialization.SerializationSchema;
+import org.apache.flink.table.connector.format.EncodingFormat;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.sink.SinkFunctionProvider;
 import org.apache.flink.table.connector.sink.DynamicTableSink.SinkRuntimeProvider;
+import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.DataType;
 
 /**
@@ -11,9 +14,13 @@ import org.apache.flink.table.types.DataType;
  */
 public class JmsDynamicSink implements DynamicTableSink {
 
+    private final EncodingFormat<SerializationSchema<RowData>> encodingFormat;
     private final DataType consumedDataType;
 
-    public JmsDynamicSink(DataType consumedDataType) {
+    public JmsDynamicSink(
+            EncodingFormat<SerializationSchema<RowData>> encodingFormat,
+            DataType consumedDataType) {
+        this.encodingFormat = encodingFormat;
         this.consumedDataType = consumedDataType;
     }
 
@@ -30,7 +37,7 @@ public class JmsDynamicSink implements DynamicTableSink {
 
     @Override
     public DynamicTableSink copy() {
-        return new JmsDynamicSink(consumedDataType);
+        return new JmsDynamicSink(encodingFormat, consumedDataType);
     }
 
     @Override
