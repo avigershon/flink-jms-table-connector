@@ -3,7 +3,6 @@ package com.example.jms;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.format.DecodingFormat;
 import org.apache.flink.table.connector.source.DynamicTableSource;
-import org.apache.flink.table.connector.source.ScanRuntimeProvider;
 import org.apache.flink.table.connector.source.ScanTableSource;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.DataType;
@@ -27,7 +26,8 @@ public class JmsDynamicSource implements ScanTableSource {
     }
 
     @Override
-    public ScanRuntimeProvider getScanRuntimeProvider(ScanContext runtimeProviderContext) {
+    public ScanTableSource.ScanRuntimeProvider getScanRuntimeProvider(
+            ScanTableSource.ScanContext runtimeProviderContext) {
         // TODO: create JMS consumer here and return SourceFunction provider
         return null;
     }
