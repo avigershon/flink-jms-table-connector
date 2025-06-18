@@ -2,12 +2,12 @@ package com.example.jms;
 
 import java.util.Properties;
 
-import javax.jms.BytesMessage;
-import javax.jms.Connection;
-import javax.jms.ConnectionFactory;
-import javax.jms.Destination;
-import javax.jms.MessageProducer;
-import javax.jms.Session;
+import jakarta.jms.BytesMessage;
+import jakarta.jms.Connection;
+import jakarta.jms.ConnectionFactory;
+import jakarta.jms.Destination;
+import jakarta.jms.MessageProducer;
+import jakarta.jms.Session;
 import javax.naming.InitialContext;
 
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
