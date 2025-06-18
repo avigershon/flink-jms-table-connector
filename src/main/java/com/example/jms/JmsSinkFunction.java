@@ -2,13 +2,13 @@ package com.example.jms;
 
 import java.util.Properties;
 
-import jakarta.jms.BytesMessage;
-import jakarta.jms.Connection;
-import jakarta.jms.ConnectionFactory;
-import jakarta.jms.Destination;
-import jakarta.jms.MessageProducer;
-import jakarta.jms.Session;
-import jakarta.naming.InitialContext;
+import javax.jms.BytesMessage;
+import javax.jms.Connection;
+import javax.jms.ConnectionFactory;
+import javax.jms.Destination;
+import javax.jms.MessageProducer;
+import javax.jms.Session;
+import javax.naming.InitialContext;
 
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import org.apache.flink.streaming.api.functions.sink.SinkFunction;
@@ -44,9 +44,9 @@ public class JmsSinkFunction extends RichSinkFunction<RowData> {
     @Override
     public void open(Configuration parameters) throws Exception {
         Properties props = new Properties();
-        props.setProperty(jakarta.naming.Context.INITIAL_CONTEXT_FACTORY, contextFactory);
-        props.setProperty(jakarta.naming.Context.PROVIDER_URL, providerUrl);
-        jakarta.naming.Context ctx = new InitialContext(props);
+        props.setProperty(javax.naming.Context.INITIAL_CONTEXT_FACTORY, contextFactory);
+        props.setProperty(javax.naming.Context.PROVIDER_URL, providerUrl);
+        javax.naming.Context ctx = new InitialContext(props);
         ConnectionFactory factory = (ConnectionFactory) ctx.lookup("ConnectionFactory");
         Destination destination = (Destination) ctx.lookup(destinationName);
         connection = factory.createConnection();
