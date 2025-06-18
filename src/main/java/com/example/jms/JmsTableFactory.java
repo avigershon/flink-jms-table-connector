@@ -92,7 +92,7 @@ public class JmsTableFactory implements DynamicTableSourceFactory, DynamicTableS
         String username = helper.getOptions().get(USERNAME);
         String password = helper.getOptions().get(PASSWORD);
         Map<String, String> queueProps =
-                helper.getOptions().toMap().entrySet().stream()
+                context.getCatalogTable().getOptions().entrySet().stream()
                         .filter(e -> e.getKey().startsWith(QUEUE_PREFIX))
                         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
@@ -127,7 +127,7 @@ public class JmsTableFactory implements DynamicTableSourceFactory, DynamicTableS
         String username = helper.getOptions().get(USERNAME);
         String password = helper.getOptions().get(PASSWORD);
         Map<String, String> queueProps =
-                helper.getOptions().toMap().entrySet().stream()
+                context.getCatalogTable().getOptions().entrySet().stream()
                         .filter(e -> e.getKey().startsWith(QUEUE_PREFIX))
                         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
