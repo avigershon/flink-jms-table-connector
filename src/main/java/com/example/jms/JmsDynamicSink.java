@@ -22,6 +22,7 @@ public class JmsDynamicSink implements DynamicTableSink {
     private final String destination;
     private final String username;
     private final String password;
+    private final java.util.Map<String, String> jndiProperties;
 
     public JmsDynamicSink(
             EncodingFormat<SerializationSchema<RowData>> encodingFormat,
@@ -30,7 +31,8 @@ public class JmsDynamicSink implements DynamicTableSink {
             String providerUrl,
             String destination,
             String username,
-            String password) {
+            String password,
+            java.util.Map<String, String> jndiProperties) {
         this.encodingFormat = encodingFormat;
         this.consumedDataType = consumedDataType;
         this.contextFactory = contextFactory;
@@ -38,6 +40,7 @@ public class JmsDynamicSink implements DynamicTableSink {
         this.destination = destination;
         this.username = username;
         this.password = password;
+        this.jndiProperties = jndiProperties;
     }
 
     @Override
@@ -52,7 +55,13 @@ public class JmsDynamicSink implements DynamicTableSink {
 
         JmsSinkFunction sinkFunction =
                 new JmsSinkFunction(
-                        serializer, contextFactory, providerUrl, destination, username, password);
+                        serializer,
+                        contextFactory,
+                        providerUrl,
+                        destination,
+                        username,
+                        password,
+                        jndiProperties);
 
         return SinkFunctionProvider.of(sinkFunction);
     }
@@ -66,7 +75,8 @@ public class JmsDynamicSink implements DynamicTableSink {
                 providerUrl,
                 destination,
                 username,
-                password);
+                password,
+                jndiProperties);
     }
 
     @Override

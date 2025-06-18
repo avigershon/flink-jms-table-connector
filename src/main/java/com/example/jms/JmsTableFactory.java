@@ -1,6 +1,8 @@
 package com.example.jms;
 
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
@@ -50,6 +52,12 @@ public class JmsTableFactory implements DynamicTableSourceFactory, DynamicTableS
             .stringType()
             .noDefaultValue();
 
+    public static final String QUEUE_PREFIX = "queue.";
+    public static final ConfigOption<String> QUEUE = ConfigOptions
+            .key(QUEUE_PREFIX + "*")
+            .stringType()
+            .noDefaultValue();
+
     @Override
     public String factoryIdentifier() {
         return IDENTIFIER;
@@ -64,7 +72,7 @@ public class JmsTableFactory implements DynamicTableSourceFactory, DynamicTableS
     public Set<ConfigOption<?>> optionalOptions() {
         // Allow specifying a data format such as 'json'
         // so users can define 'format' in the WITH clause.
-        return Set.of(FactoryUtil.FORMAT, USERNAME, PASSWORD);
+        return Set.of(FactoryUtil.FORMAT, USERNAME, PASSWORD, QUEUE);
     }
 
     @Override
@@ -83,6 +91,10 @@ public class JmsTableFactory implements DynamicTableSourceFactory, DynamicTableS
         String destination = helper.getOptions().get(DESTINATION);
         String username = helper.getOptions().get(USERNAME);
         String password = helper.getOptions().get(PASSWORD);
+        Map<String, String> queueProps =
+                helper.getOptions().toMap().entrySet().stream()
+                        .filter(e -> e.getKey().startsWith(QUEUE_PREFIX))
+                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         // validation
         helper.validate();
@@ -94,7 +106,8 @@ public class JmsTableFactory implements DynamicTableSourceFactory, DynamicTableS
                 providerUrl,
                 destination,
                 username,
-                password);
+                password,
+                queueProps);
     }
 
     @Override
@@ -113,6 +126,10 @@ public class JmsTableFactory implements DynamicTableSourceFactory, DynamicTableS
         String destination = helper.getOptions().get(DESTINATION);
         String username = helper.getOptions().get(USERNAME);
         String password = helper.getOptions().get(PASSWORD);
+        Map<String, String> queueProps =
+                helper.getOptions().toMap().entrySet().stream()
+                        .filter(e -> e.getKey().startsWith(QUEUE_PREFIX))
+                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         // validation
         helper.validate();
@@ -124,6 +141,7 @@ public class JmsTableFactory implements DynamicTableSourceFactory, DynamicTableS
                 providerUrl,
                 destination,
                 username,
-                password);
+                password,
+                queueProps);
     }
 }

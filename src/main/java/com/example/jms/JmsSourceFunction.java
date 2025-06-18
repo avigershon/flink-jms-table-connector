@@ -31,6 +31,7 @@ public class JmsSourceFunction extends RichSourceFunction<RowData> {
     private final String destinationName;
     private final String username;
     private final String password;
+    private final java.util.Map<String, String> jndiProperties;
 
     private transient Connection connection;
     private transient Session session;
@@ -43,13 +44,15 @@ public class JmsSourceFunction extends RichSourceFunction<RowData> {
             String providerUrl,
             String destinationName,
             String username,
-            String password) {
+            String password,
+            java.util.Map<String, String> jndiProperties) {
         this.deserializer = deserializer;
         this.contextFactory = contextFactory;
         this.providerUrl = providerUrl;
         this.destinationName = destinationName;
         this.username = username;
         this.password = password;
+        this.jndiProperties = jndiProperties;
     }
 
     @Override
@@ -57,6 +60,11 @@ public class JmsSourceFunction extends RichSourceFunction<RowData> {
         Properties props = new Properties();
         props.setProperty(Context.INITIAL_CONTEXT_FACTORY, contextFactory);
         props.setProperty(Context.PROVIDER_URL, providerUrl);
+        if (jndiProperties != null) {
+            for (java.util.Map.Entry<String, String> e : jndiProperties.entrySet()) {
+                props.setProperty(e.getKey(), e.getValue());
+            }
+        }
         Context ctx = new InitialContext(props);
         ConnectionFactory factory = (ConnectionFactory) ctx.lookup("ConnectionFactory");
         Destination destination = (Destination) ctx.lookup(destinationName);
