@@ -96,6 +96,10 @@ public class JmsTableFactory implements DynamicTableSourceFactory, DynamicTableS
                         .filter(e -> e.getKey().startsWith(QUEUE_PREFIX))
                         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
+        if (!queueProps.containsKey(QUEUE_PREFIX + destination)) {
+            queueProps.put(QUEUE_PREFIX + destination, destination);
+        }
+
         // validation while ignoring queue.* options
         helper.validateExcept(QUEUE_PREFIX + "*");
 
@@ -130,6 +134,10 @@ public class JmsTableFactory implements DynamicTableSourceFactory, DynamicTableS
                 context.getCatalogTable().getOptions().entrySet().stream()
                         .filter(e -> e.getKey().startsWith(QUEUE_PREFIX))
                         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        if (!queueProps.containsKey(QUEUE_PREFIX + destination)) {
+            queueProps.put(QUEUE_PREFIX + destination, destination);
+        }
 
         // validation while ignoring queue.* options
         helper.validateExcept(QUEUE_PREFIX + "*");
