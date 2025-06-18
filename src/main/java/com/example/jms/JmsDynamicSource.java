@@ -20,18 +20,24 @@ public class JmsDynamicSource implements ScanTableSource {
     private final String contextFactory;
     private final String providerUrl;
     private final String destination;
+    private final String username;
+    private final String password;
 
     public JmsDynamicSource(
             DecodingFormat<DeserializationSchema<RowData>> decodingFormat,
             DataType producedDataType,
             String contextFactory,
             String providerUrl,
-            String destination) {
+            String destination,
+            String username,
+            String password) {
         this.decodingFormat = decodingFormat;
         this.producedDataType = producedDataType;
         this.contextFactory = contextFactory;
         this.providerUrl = providerUrl;
         this.destination = destination;
+        this.username = username;
+        this.password = password;
     }
 
     @Override
@@ -46,7 +52,8 @@ public class JmsDynamicSource implements ScanTableSource {
                 decodingFormat.createRuntimeDecoder(runtimeProviderContext, producedDataType);
 
         JmsSourceFunction sourceFunction =
-                new JmsSourceFunction(deserializer, contextFactory, providerUrl, destination);
+                new JmsSourceFunction(
+                        deserializer, contextFactory, providerUrl, destination, username, password);
 
         return SourceFunctionProvider.of(sourceFunction, false);
     }
@@ -54,7 +61,13 @@ public class JmsDynamicSource implements ScanTableSource {
     @Override
     public DynamicTableSource copy() {
         return new JmsDynamicSource(
-                decodingFormat, producedDataType, contextFactory, providerUrl, destination);
+                decodingFormat,
+                producedDataType,
+                contextFactory,
+                providerUrl,
+                destination,
+                username,
+                password);
     }
 
     @Override

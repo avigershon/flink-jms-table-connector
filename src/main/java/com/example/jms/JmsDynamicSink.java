@@ -20,18 +20,24 @@ public class JmsDynamicSink implements DynamicTableSink {
     private final String contextFactory;
     private final String providerUrl;
     private final String destination;
+    private final String username;
+    private final String password;
 
     public JmsDynamicSink(
             EncodingFormat<SerializationSchema<RowData>> encodingFormat,
             DataType consumedDataType,
             String contextFactory,
             String providerUrl,
-            String destination) {
+            String destination,
+            String username,
+            String password) {
         this.encodingFormat = encodingFormat;
         this.consumedDataType = consumedDataType;
         this.contextFactory = contextFactory;
         this.providerUrl = providerUrl;
         this.destination = destination;
+        this.username = username;
+        this.password = password;
     }
 
     @Override
@@ -45,7 +51,8 @@ public class JmsDynamicSink implements DynamicTableSink {
                 encodingFormat.createRuntimeEncoder(context, consumedDataType);
 
         JmsSinkFunction sinkFunction =
-                new JmsSinkFunction(serializer, contextFactory, providerUrl, destination);
+                new JmsSinkFunction(
+                        serializer, contextFactory, providerUrl, destination, username, password);
 
         return SinkFunctionProvider.of(sinkFunction);
     }
@@ -53,7 +60,13 @@ public class JmsDynamicSink implements DynamicTableSink {
     @Override
     public DynamicTableSink copy() {
         return new JmsDynamicSink(
-                encodingFormat, consumedDataType, contextFactory, providerUrl, destination);
+                encodingFormat,
+                consumedDataType,
+                contextFactory,
+                providerUrl,
+                destination,
+                username,
+                password);
     }
 
     @Override

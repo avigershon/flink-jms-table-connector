@@ -25,6 +25,8 @@ public class JmsSinkFunction extends RichSinkFunction<RowData> {
     private final String contextFactory;
     private final String providerUrl;
     private final String destinationName;
+    private final String username;
+    private final String password;
 
     private transient Connection connection;
     private transient Session session;
@@ -34,11 +36,15 @@ public class JmsSinkFunction extends RichSinkFunction<RowData> {
             SerializationSchema<RowData> serializer,
             String contextFactory,
             String providerUrl,
-            String destinationName) {
+            String destinationName,
+            String username,
+            String password) {
         this.serializer = serializer;
         this.contextFactory = contextFactory;
         this.providerUrl = providerUrl;
         this.destinationName = destinationName;
+        this.username = username;
+        this.password = password;
     }
 
     @Override
@@ -49,7 +55,11 @@ public class JmsSinkFunction extends RichSinkFunction<RowData> {
         javax.naming.Context ctx = new InitialContext(props);
         ConnectionFactory factory = (ConnectionFactory) ctx.lookup("ConnectionFactory");
         Destination destination = (Destination) ctx.lookup(destinationName);
-        connection = factory.createConnection();
+        if (username != null) {
+            connection = factory.createConnection(username, password);
+        } else {
+            connection = factory.createConnection();
+        }
         session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
         producer = session.createProducer(destination);
         connection.start();

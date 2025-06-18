@@ -29,6 +29,8 @@ public class JmsSourceFunction extends RichSourceFunction<RowData> {
     private final String contextFactory;
     private final String providerUrl;
     private final String destinationName;
+    private final String username;
+    private final String password;
 
     private transient Connection connection;
     private transient Session session;
@@ -39,11 +41,15 @@ public class JmsSourceFunction extends RichSourceFunction<RowData> {
             DeserializationSchema<RowData> deserializer,
             String contextFactory,
             String providerUrl,
-            String destinationName) {
+            String destinationName,
+            String username,
+            String password) {
         this.deserializer = deserializer;
         this.contextFactory = contextFactory;
         this.providerUrl = providerUrl;
         this.destinationName = destinationName;
+        this.username = username;
+        this.password = password;
     }
 
     @Override
@@ -54,7 +60,11 @@ public class JmsSourceFunction extends RichSourceFunction<RowData> {
         Context ctx = new InitialContext(props);
         ConnectionFactory factory = (ConnectionFactory) ctx.lookup("ConnectionFactory");
         Destination destination = (Destination) ctx.lookup(destinationName);
-        connection = factory.createConnection();
+        if (username != null) {
+            connection = factory.createConnection(username, password);
+        } else {
+            connection = factory.createConnection();
+        }
         session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
         consumer = session.createConsumer(destination);
         connection.start();
