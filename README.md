@@ -1,6 +1,6 @@
 # Flink JMS Table Connector
 
-This project contains a very small proof-of-concept implementation of a JMS table connector for [Apache Flink](https://flink.apache.org/). It shows how a custom table source and sink could be wired using Flink's `DynamicTableFactory` interfaces.
+This project contains a very small proof-of-concept implementation of a JMS table connector for [Apache Flink](https://flink.apache.org/). It shows how a custom table source and sink could be wired using Flink's `DynamicTableFactory` interfaces. The connector now uses the community maintained [`flink-connector-jms`](https://github.com/miwurster/flink-connector-jms) library instead of the Jakarta JMS API.
 
 The implementation is intentionally minimal and does not include a real JMS consumer or producer. It is meant as a starting point for integrating a JMS queue with Flink SQL. The factory registers under the identifier `jms` so you can define a table like:
 
