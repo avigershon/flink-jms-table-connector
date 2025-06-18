@@ -33,6 +33,18 @@
       <artifactId>rabbitmq-jms</artifactId>
       <version>3.0.0</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.qpid</groupId>
+      <artifactId>qpid-jms-client</artifactId>
+      <version>2.2.0</version>      <!-- or your desired version -->
+    </dependency>
+    <!-- Include Netty if it is not pulled in transitively -->
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-transport</artifactId>
+      <version>4.1.110.Final</version>
+    </dependency>
+
   </dependencies>
 
   <build>
