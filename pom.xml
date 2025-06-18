@@ -1,59 +1,97 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
+
   <groupId>com.example</groupId>
   <artifactId>flink-jms-table-connector</artifactId>
   <version>0.1.0-SNAPSHOT</version>
   <name>Flink JMS Table Connector</name>
-  <description>Simple JMS table connector for Apache Flink</description>
+  <description>Simple JMS table connector for Apache Flink (RabbitMQ via Qpid JNDI)</description>
+
+  <properties>
+    <java.version>11</java.version>
+    <flink.version>1.17.1</flink.version>
+    <qpid-jms.version>2.7.0</qpid-jms.version>
+    <jakarta-jms.version>3.1.0</jakarta-jms.version>
+    <shade.plugin.version>3.2.4</shade.plugin.version>
+  </properties>
+
   <dependencies>
+    <!-- Flink Table API -->
     <dependency>
       <groupId>org.apache.flink</groupId>
       <artifactId>flink-table-api-java</artifactId>
-      <version>1.17.1</version>
+      <version>${flink.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.flink</groupId>
-      <artifactId>flink-table-planner</artifactId>
-      <version>1.17.1</version>
+      <artifactId>flink-table-planner_2.12</artifactId>
+      <version>${flink.version}</version>
       <scope>provided</scope>
     </dependency>
+
+    <!-- Your JMS connector implementation -->
     <dependency>
       <groupId>com.github.miwurster</groupId>
       <artifactId>flink-connector-jms</artifactId>
-      <version>1.0.0</version>
+      <version>1.1</version>
     </dependency>
-    <!-- Jakarta JMS API and RabbitMQ JMS provider -->
-    <dependency>
-      <groupId>jakarta.jms</groupId>
-      <artifactId>jakarta.jms-api</artifactId>
-      <version>3.0.0</version>
-    </dependency>
-    <dependency>
-      <groupId>com.rabbitmq.jms</groupId>
-      <artifactId>rabbitmq-jms</artifactId>
-      <version>3.0.0</version>
-    </dependency>
+
+    <!-- Qpid JMS client (contains JmsInitialContextFactory) -->
     <dependency>
       <groupId>org.apache.qpid</groupId>
       <artifactId>qpid-jms-client</artifactId>
-      <version>2.2.0</version>      <!-- or your desired version -->
+      <version>${qpid-jms.version}</version>
     </dependency>
-    <!-- Include Netty if it is not pulled in transitively -->
+
+    <!-- Jakarta JMS API (provided by Flink / container at runtime) -->
+    <dependency>
+      <groupId>jakarta.jms</groupId>
+      <artifactId>jakarta.jms-api</artifactId>
+      <version>${jakarta-jms.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- <dependency>
+      <groupId>javax.jms</groupId>
+      <artifactId>javax.jms-api</artifactId>
+      <version>3.1.0</version>
+    </dependency> -->
+
+    <dependency>
+      <groupId>com.rabbitmq.jms</groupId>
+      <artifactId>rabbitmq-jms</artifactId>
+      <version>3.4.0</version>
+    </dependency>
+
     <dependency>
       <groupId>io.netty</groupId>
       <artifactId>netty-all</artifactId>
-      <version>4.1.110.Final</version>
+      <version>4.2.2.Final</version>
     </dependency>
-
   </dependencies>
 
   <build>
     <plugins>
-      <!-- build an uber-jar so JMS dependencies are available in Flink -->
+
+      <!-- Java compiler -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.11.0</version>
+        <configuration>
+          <source>${java.version}</source>
+          <target>${java.version}</target>
+        </configuration>
+      </plugin>
+
+      <!-- Shade plugin to build an “uber” JAR -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
-        <version>3.4.1</version>
+        <version>${shade.plugin.version}</version>
         <executions>
           <execution>
             <phase>package</phase>
@@ -61,12 +99,36 @@
               <goal>shade</goal>
             </goals>
             <configuration>
+              <!-- attach as classifier “uber” -->
               <shadedArtifactAttached>true</shadedArtifactAttached>
-              <shadedClassifierName>shaded</shadedClassifierName>
+              <shadedClassifierName>uber</shadedClassifierName>
+
+              <!-- only bundle Qpid + JMS API -->
+              <artifactSet>
+                <includes>
+                  <include>org.apache.qpid:qpid-jms-client</include>
+                  <include>jakarta.jms:jakarta.jms-api</include>
+                  <include>javax.jms:javax.jms-api</include>
+                  <include>com.rabbitmq.jms:rabbitmq-jms</include>
+                  <include>com.rabbitmq:amqp-client</include>
+                  <include>io.netty:netty-all</include>
+                </includes>
+              </artifactSet>
+
+              <!-- preserve META-INF/services and merge manifests -->
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer"/>
+              </transformers>
+
+              <!-- minimize to drop unused classes -->
+              <minimizeJar>true</minimizeJar>
             </configuration>
           </execution>
         </executions>
       </plugin>
+
     </plugins>
   </build>
 </project>
+updated pom
