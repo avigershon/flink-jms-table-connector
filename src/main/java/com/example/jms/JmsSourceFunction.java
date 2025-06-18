@@ -6,7 +6,9 @@ import jakarta.jms.BytesMessage;
 import jakarta.jms.Connection;
 import jakarta.jms.ConnectionFactory;
 import jakarta.jms.Destination;
+import jakarta.jms.JMSException;
 import jakarta.jms.Message;
+import jakarta.jms.TextMessage;
 import jakarta.jms.MessageConsumer;
 import jakarta.jms.Session;
 import javax.naming.Context;
@@ -19,11 +21,11 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.table.data.RowData;
 
 /**
- * A simple JMS {@link org.apache.flink.streaming.api.functions.source.SourceFunction}
- * that converts incoming JMS messages into {@link RowData} using a provided
- * {@link DeserializationSchema}.
- */
+ A simple JMS SourceFunction that converts incoming JMS messages into RowData using a provided DeserializationSchema.
+*/
 public class JmsSourceFunction extends RichSourceFunction<RowData> {
+
+    private static final long serialVersionUID = 1L;
 
     private final DeserializationSchema<RowData> deserializer;
     private final String contextFactory;
@@ -68,6 +70,7 @@ public class JmsSourceFunction extends RichSourceFunction<RowData> {
         Context ctx = new InitialContext(props);
         ConnectionFactory factory = (ConnectionFactory) ctx.lookup("ConnectionFactory");
         Destination destination = (Destination) ctx.lookup(destinationName);
+
         if (username != null) {
             connection = factory.createConnection(username, password);
         } else {
@@ -82,17 +85,36 @@ public class JmsSourceFunction extends RichSourceFunction<RowData> {
     public void run(SourceContext<RowData> ctx) throws Exception {
         while (running) {
             Message message = consumer.receive(1000);
-            if (message instanceof BytesMessage) {
-                BytesMessage bm = (BytesMessage) message;
-                byte[] bytes = new byte[(int) bm.getBodyLength()];
-                bm.readBytes(bytes);
+            if (message == null) {
+                continue;
+            }
+
+            byte[] bytes = null;
+            try {
+                if (message instanceof TextMessage) {
+                    // extract JSON text
+                    String text = ((TextMessage) message).getText();
+                    if (text != null) {
+                        bytes = text.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+                    }
+                } else if (message instanceof BytesMessage) {
+                    BytesMessage bm = (BytesMessage) message;
+                    long length = bm.getBodyLength();
+                    if (length > 0 && length <= Integer.MAX_VALUE) {
+                        byte[] buffer = new byte[(int) length];
+                        bm.readBytes(buffer);
+                        bytes = buffer;
+                    }
+                }
+            } catch (JMSException jmse) {
+                // log and skip problematic message
+                System.err.println("Error extracting JMS payload: " + jmse.getMessage());
+            }
+
+            if (bytes != null) {
+                // deserialize to RowData
                 RowData row = deserializer.deserialize(bytes);
-                ctx.collect(row);
-            } else if (message != null) {
-                // try to handle text messages
-                byte[] bytes = message.getBody(byte[].class);
-                if (bytes != null) {
-                    RowData row = deserializer.deserialize(bytes);
+                if (row != null) {
                     ctx.collect(row);
                 }
             }
@@ -103,6 +125,12 @@ public class JmsSourceFunction extends RichSourceFunction<RowData> {
     public void cancel() {
         running = false;
         try {
+            if (consumer != null) {
+                consumer.close();
+            }
+            if (session != null) {
+                session.close();
+            }
             if (connection != null) {
                 connection.close();
             }
