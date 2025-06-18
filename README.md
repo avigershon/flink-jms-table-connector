@@ -15,9 +15,15 @@ CREATE TABLE ibm_mq (
   'jms.destination'              = 'MY.QUEUE',
   'jms.username'                = 'myuser',
   'jms.password'                = 'secret',
+  -- map logical queue names for the JNDI context
+  'queue.MY.QUEUE'             = 'MY.QUEUE',
   'format'                       = 'json'
 );
 ```
+
+Any options prefixed with `queue.` are added to the JNDI environment. This allows
+you to map logical names to JMS queues when using providers like Qpid that
+expect such entries (e.g. `queue.MY.QUEUE = MY.QUEUE`).
 
 The `jms.username` and `jms.password` options are optional and are passed to the
 underlying JMS `ConnectionFactory` when establishing the connection.

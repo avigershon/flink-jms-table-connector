@@ -27,6 +27,7 @@ public class JmsSinkFunction extends RichSinkFunction<RowData> {
     private final String destinationName;
     private final String username;
     private final String password;
+    private final java.util.Map<String, String> jndiProperties;
 
     private transient Connection connection;
     private transient Session session;
@@ -38,13 +39,15 @@ public class JmsSinkFunction extends RichSinkFunction<RowData> {
             String providerUrl,
             String destinationName,
             String username,
-            String password) {
+            String password,
+            java.util.Map<String, String> jndiProperties) {
         this.serializer = serializer;
         this.contextFactory = contextFactory;
         this.providerUrl = providerUrl;
         this.destinationName = destinationName;
         this.username = username;
         this.password = password;
+        this.jndiProperties = jndiProperties;
     }
 
     @Override
@@ -52,6 +55,11 @@ public class JmsSinkFunction extends RichSinkFunction<RowData> {
         Properties props = new Properties();
         props.setProperty(javax.naming.Context.INITIAL_CONTEXT_FACTORY, contextFactory);
         props.setProperty(javax.naming.Context.PROVIDER_URL, providerUrl);
+        if (jndiProperties != null) {
+            for (java.util.Map.Entry<String, String> e : jndiProperties.entrySet()) {
+                props.setProperty(e.getKey(), e.getValue());
+            }
+        }
         javax.naming.Context ctx = new InitialContext(props);
         ConnectionFactory factory = (ConnectionFactory) ctx.lookup("ConnectionFactory");
         Destination destination = (Destination) ctx.lookup(destinationName);

@@ -22,6 +22,7 @@ public class JmsDynamicSource implements ScanTableSource {
     private final String destination;
     private final String username;
     private final String password;
+    private final java.util.Map<String, String> jndiProperties;
 
     public JmsDynamicSource(
             DecodingFormat<DeserializationSchema<RowData>> decodingFormat,
@@ -30,7 +31,8 @@ public class JmsDynamicSource implements ScanTableSource {
             String providerUrl,
             String destination,
             String username,
-            String password) {
+            String password,
+            java.util.Map<String, String> jndiProperties) {
         this.decodingFormat = decodingFormat;
         this.producedDataType = producedDataType;
         this.contextFactory = contextFactory;
@@ -38,6 +40,7 @@ public class JmsDynamicSource implements ScanTableSource {
         this.destination = destination;
         this.username = username;
         this.password = password;
+        this.jndiProperties = jndiProperties;
     }
 
     @Override
@@ -53,7 +56,13 @@ public class JmsDynamicSource implements ScanTableSource {
 
         JmsSourceFunction sourceFunction =
                 new JmsSourceFunction(
-                        deserializer, contextFactory, providerUrl, destination, username, password);
+                        deserializer,
+                        contextFactory,
+                        providerUrl,
+                        destination,
+                        username,
+                        password,
+                        jndiProperties);
 
         return SourceFunctionProvider.of(sourceFunction, false);
     }
@@ -67,7 +76,8 @@ public class JmsDynamicSource implements ScanTableSource {
                 providerUrl,
                 destination,
                 username,
-                password);
+                password,
+                jndiProperties);
     }
 
     @Override
