@@ -69,8 +69,15 @@
     <dependency>
       <groupId>io.netty</groupId>
       <artifactId>netty-all</artifactId>
-      <version>4.2.2.Final</version>
+      <version>4.1.118.Final</version>
     </dependency>
+
+    <dependency>
+      <groupId>org.apache.qpid</groupId>
+      <artifactId>proton-j</artifactId>
+      <version>0.33.9</version>
+    </dependency>
+
   </dependencies>
 
   <build>
@@ -106,12 +113,13 @@
               <!-- only bundle Qpid + JMS API -->
               <artifactSet>
                 <includes>
+                  <include>org.apache.qpid:proton-j</include>
                   <include>org.apache.qpid:qpid-jms-client</include>
                   <include>jakarta.jms:jakarta.jms-api</include>
                   <include>javax.jms:javax.jms-api</include>
                   <include>com.rabbitmq.jms:rabbitmq-jms</include>
                   <include>com.rabbitmq:amqp-client</include>
-                  <include>io.netty:netty-all</include>
+                  <include>io.netty:netty-*</include>
                 </includes>
               </artifactSet>
 
@@ -122,7 +130,7 @@
               </transformers>
 
               <!-- minimize to drop unused classes -->
-              <minimizeJar>true</minimizeJar>
+              <minimizeJar>false</minimizeJar>
             </configuration>
           </execution>
         </executions>
@@ -131,4 +139,3 @@
     </plugins>
   </build>
 </project>
-updated pom
