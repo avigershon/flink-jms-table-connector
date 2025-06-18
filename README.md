@@ -35,8 +35,10 @@ To turn this into a functional connector you would need to implement JMS consume
 When building the connector make sure that the required JMS implementation
 libraries are available at runtime.  The `pom.xml` in this repository
 uses the Maven Shade plugin so the resulting jar contains the JMS API and
-the RabbitMQ JMS client.  Copy the shaded jar into Flink's `usrlib`
-directory so the SQL client can load the connector together with the JMS
+the RabbitMQ JMS client.  If you prefer using **Qpid JMS** as provider
+you also need to include its Netty dependencies (e.g. using `qpid-jms-client`
+and `netty-all`).  Copy the shaded jar into Flink's `usrlib`
+directory so the SQL client can load the connector together with all JMS
 dependencies.
 
 This project uses the **Jakarta JMS** API. Ensure that the JMS client
