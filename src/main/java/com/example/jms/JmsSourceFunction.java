@@ -79,6 +79,9 @@ public class JmsSourceFunction extends RichSourceFunction<RowData> {
         session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
         consumer = session.createConsumer(destination);
         connection.start();
+
+        // initialize the deserializer so it is ready to deserialize incoming messages
+        deserializer.open(null);
     }
 
     @Override
