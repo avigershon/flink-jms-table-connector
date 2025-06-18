@@ -96,8 +96,8 @@ public class JmsTableFactory implements DynamicTableSourceFactory, DynamicTableS
                         .filter(e -> e.getKey().startsWith(QUEUE_PREFIX))
                         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-        // validation
-        helper.validate();
+        // validation while ignoring queue.* options
+        helper.validateExcept(QUEUE_PREFIX + "*");
 
         return new JmsDynamicSource(
                 decodingFormat,
@@ -131,8 +131,8 @@ public class JmsTableFactory implements DynamicTableSourceFactory, DynamicTableS
                         .filter(e -> e.getKey().startsWith(QUEUE_PREFIX))
                         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-        // validation
-        helper.validate();
+        // validation while ignoring queue.* options
+        helper.validateExcept(QUEUE_PREFIX + "*");
 
         return new JmsDynamicSink(
                 encodingFormat,
