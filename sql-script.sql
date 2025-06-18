@@ -6,6 +6,8 @@ CREATE TABLE example_jms (
   'jms.initial-context-factory' = 'com.example.ContextFactory',
   'jms.provider-url' = 'mq://localhost:1414',
   'jms.destination' = 'MY.QUEUE',
+  'jms.username' = 'myuser',
+  'jms.password' = 'secret',
   'format' = 'json'
 );
 

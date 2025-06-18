@@ -40,6 +40,16 @@ public class JmsTableFactory implements DynamicTableSourceFactory, DynamicTableS
             .stringType()
             .noDefaultValue();
 
+    public static final ConfigOption<String> USERNAME = ConfigOptions
+            .key("jms.username")
+            .stringType()
+            .noDefaultValue();
+
+    public static final ConfigOption<String> PASSWORD = ConfigOptions
+            .key("jms.password")
+            .stringType()
+            .noDefaultValue();
+
     @Override
     public String factoryIdentifier() {
         return IDENTIFIER;
@@ -54,7 +64,7 @@ public class JmsTableFactory implements DynamicTableSourceFactory, DynamicTableS
     public Set<ConfigOption<?>> optionalOptions() {
         // Allow specifying a data format such as 'json'
         // so users can define 'format' in the WITH clause.
-        return Set.of(FactoryUtil.FORMAT);
+        return Set.of(FactoryUtil.FORMAT, USERNAME, PASSWORD);
     }
 
     @Override
@@ -71,12 +81,20 @@ public class JmsTableFactory implements DynamicTableSourceFactory, DynamicTableS
         String contextFactory = helper.getOptions().get(INITIAL_CONTEXT_FACTORY);
         String providerUrl = helper.getOptions().get(PROVIDER_URL);
         String destination = helper.getOptions().get(DESTINATION);
+        String username = helper.getOptions().get(USERNAME);
+        String password = helper.getOptions().get(PASSWORD);
 
         // validation
         helper.validate();
 
         return new JmsDynamicSource(
-                decodingFormat, dataType, contextFactory, providerUrl, destination);
+                decodingFormat,
+                dataType,
+                contextFactory,
+                providerUrl,
+                destination,
+                username,
+                password);
     }
 
     @Override
@@ -93,11 +111,19 @@ public class JmsTableFactory implements DynamicTableSourceFactory, DynamicTableS
         String contextFactory = helper.getOptions().get(INITIAL_CONTEXT_FACTORY);
         String providerUrl = helper.getOptions().get(PROVIDER_URL);
         String destination = helper.getOptions().get(DESTINATION);
+        String username = helper.getOptions().get(USERNAME);
+        String password = helper.getOptions().get(PASSWORD);
 
         // validation
         helper.validate();
 
         return new JmsDynamicSink(
-                encodingFormat, dataType, contextFactory, providerUrl, destination);
+                encodingFormat,
+                dataType,
+                contextFactory,
+                providerUrl,
+                destination,
+                username,
+                password);
     }
 }

@@ -13,9 +13,14 @@ CREATE TABLE ibm_mq (
   'jms.initial-context-factory'  = 'com.ibm.mq.jms.context.WMQInitialContextFactory',
   'jms.provider-url'             = 'mq://host:1414/QMGR',
   'jms.destination'              = 'MY.QUEUE',
+  'jms.username'                = 'myuser',
+  'jms.password'                = 'secret',
   'format'                       = 'json'
 );
 ```
+
+The `jms.username` and `jms.password` options are optional and are passed to the
+underlying JMS `ConnectionFactory` when establishing the connection.
 
 To turn this into a functional connector you would need to implement JMS consumer and producer logic inside `JmsDynamicSource` and `JmsDynamicSink`.
 
