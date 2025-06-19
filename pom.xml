@@ -46,10 +46,10 @@
       <version>${qpid-jms.version}</version>
     </dependency>
 
-    <!-- IBM MQ JMS client -->
+    <!-- IBM MQ JMS client built for Jakarta API -->
     <dependency>
       <groupId>com.ibm.mq</groupId>
-      <artifactId>com.ibm.mq.allclient</artifactId>
+      <artifactId>com.ibm.mq.jakarta.client</artifactId>
       <version>9.3.5.0</version>
     </dependency>
 
