@@ -15,8 +15,8 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 
 // IBM MQ specific classes used when bypassing JNDI
-import com.ibm.mq.jms.MQConnectionFactory;
-import com.ibm.msg.client.wmq.WMQConstants;
+import com.ibm.mq.jakarta.jms.MQConnectionFactory;
+import com.ibm.msg.client.jakarta.wmq.WMQConstants;
 
 import org.apache.flink.streaming.api.functions.source.RichSourceFunction;
 import org.apache.flink.streaming.api.functions.source.SourceFunction.SourceContext;
@@ -97,7 +97,7 @@ public class JmsSourceFunction extends RichSourceFunction<RowData> {
             consumer = session.createConsumer(destination);
         } else {
             // programmatic IBM MQ configuration without JNDI
-            com.ibm.mq.jms.MQConnectionFactory factory = new com.ibm.mq.jms.MQConnectionFactory();
+            com.ibm.mq.jakarta.jms.MQConnectionFactory factory = new com.ibm.mq.jakarta.jms.MQConnectionFactory();
             if (mqHost != null) {
                 factory.setHostName(mqHost);
             }
@@ -110,7 +110,7 @@ public class JmsSourceFunction extends RichSourceFunction<RowData> {
             if (mqChannel != null) {
                 factory.setChannel(mqChannel);
             }
-            factory.setTransportType(com.ibm.msg.client.wmq.WMQConstants.WMQ_CM_CLIENT);
+            factory.setTransportType(com.ibm.msg.client.jakarta.wmq.WMQConstants.WMQ_CM_CLIENT);
 
             if (username != null) {
                 connection = factory.createConnection(username, password);

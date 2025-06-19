@@ -10,7 +10,7 @@ CREATE TABLE ibm_mq (
   field2 INT
 ) WITH (
   'connector'                    = 'jms',
-  'jms.initial-context-factory'  = 'com.ibm.mq.jms.context.WMQInitialContextFactory',
+  'jms.initial-context-factory'  = 'com.ibm.mq.jakarta.jms.context.WMQInitialContextFactory',
   'jms.provider-url'             = 'mq://host:1414/QMGR',
   'jms.destination'              = 'MY.QUEUE',
   'jms.username'                = 'myuser',

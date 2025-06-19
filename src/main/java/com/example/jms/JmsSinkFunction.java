@@ -11,8 +11,8 @@ import jakarta.jms.Session;
 import javax.naming.InitialContext;
 
 // IBM MQ classes used when bypassing JNDI
-import com.ibm.mq.jms.MQConnectionFactory;
-import com.ibm.msg.client.wmq.WMQConstants;
+import com.ibm.mq.jakarta.jms.MQConnectionFactory;
+import com.ibm.msg.client.jakarta.wmq.WMQConstants;
 
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import org.apache.flink.streaming.api.functions.sink.SinkFunction;
