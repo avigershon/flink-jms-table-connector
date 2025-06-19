@@ -52,6 +52,27 @@ public class JmsTableFactory implements DynamicTableSourceFactory, DynamicTableS
             .stringType()
             .noDefaultValue();
 
+    // Direct IBM MQ configuration if no JNDI context is available
+    public static final ConfigOption<String> MQ_HOST = ConfigOptions
+            .key("jms.mq-host")
+            .stringType()
+            .noDefaultValue();
+
+    public static final ConfigOption<Integer> MQ_PORT = ConfigOptions
+            .key("jms.mq-port")
+            .intType()
+            .noDefaultValue();
+
+    public static final ConfigOption<String> MQ_QUEUE_MANAGER = ConfigOptions
+            .key("jms.mq-queue-manager")
+            .stringType()
+            .noDefaultValue();
+
+    public static final ConfigOption<String> MQ_CHANNEL = ConfigOptions
+            .key("jms.mq-channel")
+            .stringType()
+            .noDefaultValue();
+
     public static final String QUEUE_PREFIX = "queue.";
     public static final ConfigOption<String> QUEUE = ConfigOptions
             .key(QUEUE_PREFIX + "*")
@@ -65,14 +86,27 @@ public class JmsTableFactory implements DynamicTableSourceFactory, DynamicTableS
 
     @Override
     public Set<ConfigOption<?>> requiredOptions() {
-        return Set.of(INITIAL_CONTEXT_FACTORY, PROVIDER_URL, DESTINATION);
+        // destination is always required. The connection can be configured
+        // either via JNDI (initial-context-factory + provider-url) or
+        // directly for IBM MQ using the mq-* options.
+        return Set.of(DESTINATION);
     }
 
     @Override
     public Set<ConfigOption<?>> optionalOptions() {
         // Allow specifying a data format such as 'json'
         // so users can define 'format' in the WITH clause.
-        return Set.of(FactoryUtil.FORMAT, USERNAME, PASSWORD, QUEUE);
+        return Set.of(
+                FactoryUtil.FORMAT,
+                USERNAME,
+                PASSWORD,
+                QUEUE,
+                INITIAL_CONTEXT_FACTORY,
+                PROVIDER_URL,
+                MQ_HOST,
+                MQ_PORT,
+                MQ_QUEUE_MANAGER,
+                MQ_CHANNEL);
     }
 
     @Override
@@ -91,6 +125,14 @@ public class JmsTableFactory implements DynamicTableSourceFactory, DynamicTableS
         String destination = helper.getOptions().get(DESTINATION);
         String username = helper.getOptions().get(USERNAME);
         String password = helper.getOptions().get(PASSWORD);
+        String mqHost = helper.getOptions().get(MQ_HOST);
+        Integer mqPort = helper.getOptions().get(MQ_PORT);
+        String mqQueueManager = helper.getOptions().get(MQ_QUEUE_MANAGER);
+        String mqChannel = helper.getOptions().get(MQ_CHANNEL);
+        String mqHost = helper.getOptions().get(MQ_HOST);
+        Integer mqPort = helper.getOptions().get(MQ_PORT);
+        String mqQueueManager = helper.getOptions().get(MQ_QUEUE_MANAGER);
+        String mqChannel = helper.getOptions().get(MQ_CHANNEL);
         Map<String, String> queueProps =
                 context.getCatalogTable().getOptions().entrySet().stream()
                         .filter(e -> e.getKey().startsWith(QUEUE_PREFIX))
@@ -111,7 +153,11 @@ public class JmsTableFactory implements DynamicTableSourceFactory, DynamicTableS
                 destination,
                 username,
                 password,
-                queueProps);
+                queueProps,
+                mqHost,
+                mqPort,
+                mqQueueManager,
+                mqChannel);
     }
 
     @Override
@@ -150,6 +196,10 @@ public class JmsTableFactory implements DynamicTableSourceFactory, DynamicTableS
                 destination,
                 username,
                 password,
-                queueProps);
+                queueProps,
+                mqHost,
+                mqPort,
+                mqQueueManager,
+                mqChannel);
     }
 }

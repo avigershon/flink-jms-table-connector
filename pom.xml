@@ -46,6 +46,13 @@
       <version>${qpid-jms.version}</version>
     </dependency>
 
+    <!-- IBM MQ JMS client -->
+    <dependency>
+      <groupId>com.ibm.mq</groupId>
+      <artifactId>com.ibm.mq.allclient</artifactId>
+      <version>9.3.5.0</version>
+    </dependency>
+
     <!-- Jakarta JMS API (provided by Flink / container at runtime) -->
     <dependency>
       <groupId>jakarta.jms</groupId>
@@ -119,6 +126,7 @@
                   <include>javax.jms:javax.jms-api</include>
                   <include>com.rabbitmq.jms:rabbitmq-jms</include>
                   <include>com.rabbitmq:amqp-client</include>
+                  <include>com.ibm.mq:com.ibm.mq.allclient</include>
                   <include>io.netty:netty-*</include>
                 </includes>
               </artifactSet>

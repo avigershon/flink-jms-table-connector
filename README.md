@@ -21,6 +21,25 @@ CREATE TABLE ibm_mq (
 );
 ```
 
+If the IBM MQ JNDI libraries are not available you can configure the MQ
+connection directly without using `jms.initial-context-factory` and
+`jms.provider-url`:
+
+```sql
+CREATE TABLE ibm_mq (
+  field1 STRING,
+  field2 INT
+) WITH (
+  'connector'       = 'jms',
+  'jms.destination' = 'MY.QUEUE',
+  'jms.mq-host'     = 'mq.example.com',
+  'jms.mq-port'     = '1414',
+  'jms.mq-queue-manager' = 'QMGR',
+  'jms.mq-channel' = 'DEV.APP.SVRCONN',
+  'format'         = 'json'
+);
+```
+
 Any options prefixed with `queue.` are added to the JNDI environment. This allows
 you to map logical names to JMS queues when using providers like Qpid that
 expect such entries (e.g. `queue.MY.QUEUE = MY.QUEUE`). If `jms.destination`
