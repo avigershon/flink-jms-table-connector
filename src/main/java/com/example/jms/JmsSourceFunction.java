@@ -14,6 +14,10 @@ import jakarta.jms.Session;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 
+// IBM MQ specific classes used when bypassing JNDI
+import com.ibm.mq.jms.MQConnectionFactory;
+import com.ibm.msg.client.wmq.WMQConstants;
+
 import org.apache.flink.streaming.api.functions.source.RichSourceFunction;
 import org.apache.flink.streaming.api.functions.source.SourceFunction.SourceContext;
 import org.apache.flink.api.common.serialization.DeserializationSchema;
@@ -34,6 +38,10 @@ public class JmsSourceFunction extends RichSourceFunction<RowData> {
     private final String username;
     private final String password;
     private final java.util.Map<String, String> jndiProperties;
+    private final String mqHost;
+    private final Integer mqPort;
+    private final String mqQueueManager;
+    private final String mqChannel;
 
     private transient Connection connection;
     private transient Session session;
@@ -47,7 +55,11 @@ public class JmsSourceFunction extends RichSourceFunction<RowData> {
             String destinationName,
             String username,
             String password,
-            java.util.Map<String, String> jndiProperties) {
+            java.util.Map<String, String> jndiProperties,
+            String mqHost,
+            Integer mqPort,
+            String mqQueueManager,
+            String mqChannel) {
         this.deserializer = deserializer;
         this.contextFactory = contextFactory;
         this.providerUrl = providerUrl;
@@ -55,29 +67,60 @@ public class JmsSourceFunction extends RichSourceFunction<RowData> {
         this.username = username;
         this.password = password;
         this.jndiProperties = jndiProperties;
+        this.mqHost = mqHost;
+        this.mqPort = mqPort;
+        this.mqQueueManager = mqQueueManager;
+        this.mqChannel = mqChannel;
     }
 
     @Override
     public void open(Configuration parameters) throws Exception {
-        Properties props = new Properties();
-        props.setProperty(Context.INITIAL_CONTEXT_FACTORY, contextFactory);
-        props.setProperty(Context.PROVIDER_URL, providerUrl);
-        if (jndiProperties != null) {
-            for (java.util.Map.Entry<String, String> e : jndiProperties.entrySet()) {
-                props.setProperty(e.getKey(), e.getValue());
+        if (contextFactory != null && providerUrl != null) {
+            Properties props = new Properties();
+            props.setProperty(Context.INITIAL_CONTEXT_FACTORY, contextFactory);
+            props.setProperty(Context.PROVIDER_URL, providerUrl);
+            if (jndiProperties != null) {
+                for (java.util.Map.Entry<String, String> e : jndiProperties.entrySet()) {
+                    props.setProperty(e.getKey(), e.getValue());
+                }
             }
-        }
-        Context ctx = new InitialContext(props);
-        ConnectionFactory factory = (ConnectionFactory) ctx.lookup("ConnectionFactory");
-        Destination destination = (Destination) ctx.lookup(destinationName);
+            Context ctx = new InitialContext(props);
+            ConnectionFactory factory = (ConnectionFactory) ctx.lookup("ConnectionFactory");
+            Destination destination = (Destination) ctx.lookup(destinationName);
 
-        if (username != null) {
-            connection = factory.createConnection(username, password);
+            if (username != null) {
+                connection = factory.createConnection(username, password);
+            } else {
+                connection = factory.createConnection();
+            }
+            session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+            consumer = session.createConsumer(destination);
         } else {
-            connection = factory.createConnection();
+            // programmatic IBM MQ configuration without JNDI
+            com.ibm.mq.jms.MQConnectionFactory factory = new com.ibm.mq.jms.MQConnectionFactory();
+            if (mqHost != null) {
+                factory.setHostName(mqHost);
+            }
+            if (mqPort != null) {
+                factory.setPort(mqPort);
+            }
+            if (mqQueueManager != null) {
+                factory.setQueueManager(mqQueueManager);
+            }
+            if (mqChannel != null) {
+                factory.setChannel(mqChannel);
+            }
+            factory.setTransportType(com.ibm.msg.client.wmq.WMQConstants.WMQ_CM_CLIENT);
+
+            if (username != null) {
+                connection = factory.createConnection(username, password);
+            } else {
+                connection = factory.createConnection();
+            }
+            session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+            Destination destination = session.createQueue(destinationName);
+            consumer = session.createConsumer(destination);
         }
-        session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-        consumer = session.createConsumer(destination);
         connection.start();
 
         // initialize the deserializer so it is ready to deserialize incoming messages

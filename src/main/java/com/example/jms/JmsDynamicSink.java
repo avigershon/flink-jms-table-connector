@@ -23,6 +23,10 @@ public class JmsDynamicSink implements DynamicTableSink {
     private final String username;
     private final String password;
     private final java.util.Map<String, String> jndiProperties;
+    private final String mqHost;
+    private final Integer mqPort;
+    private final String mqQueueManager;
+    private final String mqChannel;
 
     public JmsDynamicSink(
             EncodingFormat<SerializationSchema<RowData>> encodingFormat,
@@ -32,7 +36,11 @@ public class JmsDynamicSink implements DynamicTableSink {
             String destination,
             String username,
             String password,
-            java.util.Map<String, String> jndiProperties) {
+            java.util.Map<String, String> jndiProperties,
+            String mqHost,
+            Integer mqPort,
+            String mqQueueManager,
+            String mqChannel) {
         this.encodingFormat = encodingFormat;
         this.consumedDataType = consumedDataType;
         this.contextFactory = contextFactory;
@@ -41,6 +49,10 @@ public class JmsDynamicSink implements DynamicTableSink {
         this.username = username;
         this.password = password;
         this.jndiProperties = jndiProperties;
+        this.mqHost = mqHost;
+        this.mqPort = mqPort;
+        this.mqQueueManager = mqQueueManager;
+        this.mqChannel = mqChannel;
     }
 
     @Override
@@ -61,7 +73,11 @@ public class JmsDynamicSink implements DynamicTableSink {
                         destination,
                         username,
                         password,
-                        jndiProperties);
+                        jndiProperties,
+                        mqHost,
+                        mqPort,
+                        mqQueueManager,
+                        mqChannel);
 
         return SinkFunctionProvider.of(sinkFunction);
     }
@@ -76,7 +92,11 @@ public class JmsDynamicSink implements DynamicTableSink {
                 destination,
                 username,
                 password,
-                jndiProperties);
+                jndiProperties,
+                mqHost,
+                mqPort,
+                mqQueueManager,
+                mqChannel);
     }
 
     @Override

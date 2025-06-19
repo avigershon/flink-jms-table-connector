@@ -23,6 +23,10 @@ public class JmsDynamicSource implements ScanTableSource {
     private final String username;
     private final String password;
     private final java.util.Map<String, String> jndiProperties;
+    private final String mqHost;
+    private final Integer mqPort;
+    private final String mqQueueManager;
+    private final String mqChannel;
 
     public JmsDynamicSource(
             DecodingFormat<DeserializationSchema<RowData>> decodingFormat,
@@ -32,7 +36,11 @@ public class JmsDynamicSource implements ScanTableSource {
             String destination,
             String username,
             String password,
-            java.util.Map<String, String> jndiProperties) {
+            java.util.Map<String, String> jndiProperties,
+            String mqHost,
+            Integer mqPort,
+            String mqQueueManager,
+            String mqChannel) {
         this.decodingFormat = decodingFormat;
         this.producedDataType = producedDataType;
         this.contextFactory = contextFactory;
@@ -41,6 +49,10 @@ public class JmsDynamicSource implements ScanTableSource {
         this.username = username;
         this.password = password;
         this.jndiProperties = jndiProperties;
+        this.mqHost = mqHost;
+        this.mqPort = mqPort;
+        this.mqQueueManager = mqQueueManager;
+        this.mqChannel = mqChannel;
     }
 
     @Override
@@ -62,7 +74,11 @@ public class JmsDynamicSource implements ScanTableSource {
                         destination,
                         username,
                         password,
-                        jndiProperties);
+                        jndiProperties,
+                        mqHost,
+                        mqPort,
+                        mqQueueManager,
+                        mqChannel);
 
         return SourceFunctionProvider.of(sourceFunction, false);
     }
@@ -77,7 +93,11 @@ public class JmsDynamicSource implements ScanTableSource {
                 destination,
                 username,
                 password,
-                jndiProperties);
+                jndiProperties,
+                mqHost,
+                mqPort,
+                mqQueueManager,
+                mqChannel);
     }
 
     @Override
