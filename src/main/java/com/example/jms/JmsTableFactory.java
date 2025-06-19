@@ -129,10 +129,6 @@ public class JmsTableFactory implements DynamicTableSourceFactory, DynamicTableS
         Integer mqPort = helper.getOptions().get(MQ_PORT);
         String mqQueueManager = helper.getOptions().get(MQ_QUEUE_MANAGER);
         String mqChannel = helper.getOptions().get(MQ_CHANNEL);
-        String mqHost = helper.getOptions().get(MQ_HOST);
-        Integer mqPort = helper.getOptions().get(MQ_PORT);
-        String mqQueueManager = helper.getOptions().get(MQ_QUEUE_MANAGER);
-        String mqChannel = helper.getOptions().get(MQ_CHANNEL);
         Map<String, String> queueProps =
                 context.getCatalogTable().getOptions().entrySet().stream()
                         .filter(e -> e.getKey().startsWith(QUEUE_PREFIX))
@@ -176,6 +172,10 @@ public class JmsTableFactory implements DynamicTableSourceFactory, DynamicTableS
         String destination = helper.getOptions().get(DESTINATION);
         String username = helper.getOptions().get(USERNAME);
         String password = helper.getOptions().get(PASSWORD);
+        String mqHost = helper.getOptions().get(MQ_HOST);
+        Integer mqPort = helper.getOptions().get(MQ_PORT);
+        String mqQueueManager = helper.getOptions().get(MQ_QUEUE_MANAGER);
+        String mqChannel = helper.getOptions().get(MQ_CHANNEL);
         Map<String, String> queueProps =
                 context.getCatalogTable().getOptions().entrySet().stream()
                         .filter(e -> e.getKey().startsWith(QUEUE_PREFIX))
