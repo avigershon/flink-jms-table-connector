@@ -3,7 +3,7 @@ package com.example.jms;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.table.connector.format.DecodingFormat;
-import com.example.jms.JmsSourceFunction;
+import com.example.jms.JmsExactlyOnceSourceFunction;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.connector.source.ScanTableSource;
 import org.apache.flink.table.connector.source.SourceFunctionProvider;
@@ -66,8 +66,8 @@ public class JmsDynamicSource implements ScanTableSource {
         DeserializationSchema<RowData> deserializer =
                 decodingFormat.createRuntimeDecoder(runtimeProviderContext, producedDataType);
 
-        JmsSourceFunction sourceFunction =
-                new JmsSourceFunction(
+        JmsExactlyOnceSourceFunction sourceFunction =
+                new JmsExactlyOnceSourceFunction(
                         deserializer,
                         contextFactory,
                         providerUrl,
@@ -80,7 +80,8 @@ public class JmsDynamicSource implements ScanTableSource {
                         mqQueueManager,
                         mqChannel);
 
-        return SourceFunctionProvider.of(sourceFunction, false);
+        // mark the source as parallel so each subtask gets its own JMS consumer
+        return SourceFunctionProvider.of(sourceFunction, true);
     }
 
     @Override
@@ -102,6 +103,6 @@ public class JmsDynamicSource implements ScanTableSource {
 
     @Override
     public String asSummaryString() {
-        return "JMS Table Source";
+        return "JMS Table Source (exactly once)";
     }
 }

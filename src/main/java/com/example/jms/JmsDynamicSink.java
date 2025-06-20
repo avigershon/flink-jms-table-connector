@@ -4,7 +4,7 @@ import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.apache.flink.table.connector.format.EncodingFormat;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
-import com.example.jms.JmsSinkFunction;
+import com.example.jms.JmsExactlyOnceSinkFunction;
 import org.apache.flink.table.connector.sink.SinkFunctionProvider;
 import org.apache.flink.table.connector.sink.DynamicTableSink.SinkRuntimeProvider;
 import org.apache.flink.table.data.RowData;
@@ -65,8 +65,8 @@ public class JmsDynamicSink implements DynamicTableSink {
         SerializationSchema<RowData> serializer =
                 encodingFormat.createRuntimeEncoder(context, consumedDataType);
 
-        JmsSinkFunction sinkFunction =
-                new JmsSinkFunction(
+        JmsExactlyOnceSinkFunction sinkFunction =
+                new JmsExactlyOnceSinkFunction(
                         serializer,
                         contextFactory,
                         providerUrl,
@@ -101,6 +101,6 @@ public class JmsDynamicSink implements DynamicTableSink {
 
     @Override
     public String asSummaryString() {
-        return "JMS Table Sink";
+        return "JMS Table Sink (exactly once)";
     }
 }

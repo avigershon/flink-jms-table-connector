@@ -8,26 +8,30 @@ import jakarta.jms.ConnectionFactory;
 import jakarta.jms.Destination;
 import jakarta.jms.JMSException;
 import jakarta.jms.Message;
-import jakarta.jms.TextMessage;
 import jakarta.jms.MessageConsumer;
 import jakarta.jms.Session;
+import jakarta.jms.TextMessage;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 
-// IBM MQ specific classes used when bypassing JNDI
 import com.ibm.mq.jakarta.jms.MQConnectionFactory;
 import com.ibm.msg.client.jakarta.wmq.WMQConstants;
 
-import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
-import org.apache.flink.streaming.api.functions.source.SourceFunction.SourceContext;
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
+import org.apache.flink.streaming.api.checkpoint.CheckpointListener;
+import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
+import org.apache.flink.streaming.api.functions.source.SourceFunction.SourceContext;
 import org.apache.flink.table.data.RowData;
 
 /**
- A simple JMS SourceFunction that converts incoming JMS messages into RowData using a provided DeserializationSchema.
-*/
-public class JmsSourceFunction extends RichParallelSourceFunction<RowData> {
+ * Exactly-once JMS SourceFunction using a transacted session. Messages are
+ * committed when the Flink checkpoint completes.
+ */
+
+public class JmsExactlyOnceSourceFunction extends RichParallelSourceFunction<RowData>
+        implements CheckpointedFunction, CheckpointListener {
 
     private static final long serialVersionUID = 1L;
 
@@ -48,7 +52,7 @@ public class JmsSourceFunction extends RichParallelSourceFunction<RowData> {
     private transient MessageConsumer consumer;
     private volatile boolean running = true;
 
-    public JmsSourceFunction(
+    public JmsExactlyOnceSourceFunction(
             DeserializationSchema<RowData> deserializer,
             String contextFactory,
             String providerUrl,
@@ -93,11 +97,10 @@ public class JmsSourceFunction extends RichParallelSourceFunction<RowData> {
             } else {
                 connection = factory.createConnection();
             }
-            session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+            session = connection.createSession(true, Session.SESSION_TRANSACTED);
             consumer = session.createConsumer(destination);
         } else {
-            // programmatic IBM MQ configuration without JNDI
-            com.ibm.mq.jakarta.jms.MQConnectionFactory factory = new com.ibm.mq.jakarta.jms.MQConnectionFactory();
+            MQConnectionFactory factory = new MQConnectionFactory();
             if (mqHost != null) {
                 factory.setHostName(mqHost);
             }
@@ -110,20 +113,19 @@ public class JmsSourceFunction extends RichParallelSourceFunction<RowData> {
             if (mqChannel != null) {
                 factory.setChannel(mqChannel);
             }
-            factory.setTransportType(com.ibm.msg.client.jakarta.wmq.WMQConstants.WMQ_CM_CLIENT);
+            factory.setTransportType(WMQConstants.WMQ_CM_CLIENT);
 
             if (username != null) {
                 connection = factory.createConnection(username, password);
             } else {
                 connection = factory.createConnection();
             }
-            session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+            session = connection.createSession(true, Session.SESSION_TRANSACTED);
             Destination destination = session.createQueue(destinationName);
             consumer = session.createConsumer(destination);
         }
         connection.start();
 
-        // initialize the deserializer so it is ready to deserialize incoming messages
         deserializer.open(null);
     }
 
@@ -138,7 +140,6 @@ public class JmsSourceFunction extends RichParallelSourceFunction<RowData> {
             byte[] bytes = null;
             try {
                 if (message instanceof TextMessage) {
-                    // extract JSON text
                     String text = ((TextMessage) message).getText();
                     if (text != null) {
                         bytes = text.getBytes(java.nio.charset.StandardCharsets.UTF_8);
@@ -153,15 +154,15 @@ public class JmsSourceFunction extends RichParallelSourceFunction<RowData> {
                     }
                 }
             } catch (JMSException jmse) {
-                // log and skip problematic message
                 System.err.println("Error extracting JMS payload: " + jmse.getMessage());
             }
 
             if (bytes != null) {
-                // deserialize to RowData
                 RowData row = deserializer.deserialize(bytes);
                 if (row != null) {
-                    ctx.collect(row);
+                    synchronized (ctx.getCheckpointLock()) {
+                        ctx.collect(row);
+                    }
                 }
             }
         }
@@ -181,6 +182,24 @@ public class JmsSourceFunction extends RichParallelSourceFunction<RowData> {
                 connection.close();
             }
         } catch (Exception ignore) {
+        }
+    }
+
+    // CheckpointedFunction
+    @Override
+    public void snapshotState(org.apache.flink.runtime.state.FunctionSnapshotContext context) throws Exception {
+        // nothing to store
+    }
+
+    @Override
+    public void initializeState(org.apache.flink.runtime.state.FunctionInitializationContext context) throws Exception {
+    }
+
+    // CheckpointListener
+    @Override
+    public void notifyCheckpointComplete(long checkpointId) throws Exception {
+        if (session != null) {
+            session.commit();
         }
     }
 }
