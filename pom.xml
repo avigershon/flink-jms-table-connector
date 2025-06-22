@@ -90,6 +90,20 @@
       <version>0.33.9</version>
     </dependency>
 
+    <!-- Flink JSON format for RowData -->
+    <dependency>
+      <groupId>org.apache.flink</groupId>
+      <artifactId>flink-json</artifactId>
+      <version>${flink.version}</version>
+    </dependency>
+
+    <!-- org.json for XML to JSON conversion -->
+    <dependency>
+      <groupId>org.json</groupId>
+      <artifactId>json</artifactId>
+      <version>20231013</version>
+    </dependency>
+
   </dependencies>
 
   <build>

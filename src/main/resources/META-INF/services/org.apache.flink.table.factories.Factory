@@ -1,1 +1,2 @@
 com.example.jms.JmsTableFactory
+com.example.jms.format.XmlJsonFormatFactory
