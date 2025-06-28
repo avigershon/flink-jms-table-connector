@@ -113,6 +113,9 @@ public class JmsSinkFunction extends RichSinkFunction<RowData> {
             producer = session.createProducer(destination);
         }
         connection.start();
+        // initialize serializer after connection setup so it is ready to
+        // convert RowData records into the target message format
+        serializer.open(null);
     }
 
     @Override
