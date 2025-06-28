@@ -17,6 +17,10 @@ import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.functions.sink.TwoPhaseCommitSinkFunction;
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.api.common.ExecutionConfig;
+import org.apache.flink.api.common.typeutils.TypeSerializer;
+import org.apache.flink.api.common.typeutils.base.VoidSerializer;
+import org.apache.flink.api.java.typeutils.TypeExtractor;
 
 /**
  * Exactly-once JMS sink using Flink's TwoPhaseCommitSinkFunction. Messages are
@@ -49,7 +53,11 @@ public class JmsExactlyOnceSinkFunction extends TwoPhaseCommitSinkFunction<RowDa
             Integer mqPort,
             String mqQueueManager,
             String mqChannel) {
-        super(RowData.class, JmsTransaction.class, Void.class);
+        super(
+                (TypeSerializer<JmsTransaction>)
+                        TypeExtractor.getForClass(JmsTransaction.class)
+                                .createSerializer(new ExecutionConfig()),
+                VoidSerializer.INSTANCE);
         this.serializer = serializer;
         this.contextFactory = contextFactory;
         this.providerUrl = providerUrl;
