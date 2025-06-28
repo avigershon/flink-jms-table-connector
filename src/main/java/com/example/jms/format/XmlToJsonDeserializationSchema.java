@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.formats.json.JsonRowDataDeserializationSchema;
+import org.apache.flink.formats.common.TimestampFormat;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
@@ -27,7 +28,8 @@ public class XmlToJsonDeserializationSchema implements DeserializationSchema<Row
                 rowType,
                 InternalTypeInfo.of(rowType),
                 false,
-                false);
+                false,
+                TimestampFormat.ISO_8601);
     }
 
     @Override
