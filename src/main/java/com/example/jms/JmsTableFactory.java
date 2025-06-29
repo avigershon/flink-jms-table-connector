@@ -73,6 +73,11 @@ public class JmsTableFactory implements DynamicTableSourceFactory, DynamicTableS
             .stringType()
             .noDefaultValue();
 
+    public static final ConfigOption<Boolean> EXACTLY_ONCE = ConfigOptions
+            .key("jms.exactly-once")
+            .booleanType()
+            .defaultValue(true);
+
     public static final String QUEUE_PREFIX = "queue.";
     public static final ConfigOption<String> QUEUE = ConfigOptions
             .key(QUEUE_PREFIX + "*")
@@ -106,7 +111,8 @@ public class JmsTableFactory implements DynamicTableSourceFactory, DynamicTableS
                 MQ_HOST,
                 MQ_PORT,
                 MQ_QUEUE_MANAGER,
-                MQ_CHANNEL);
+                MQ_CHANNEL,
+                EXACTLY_ONCE);
     }
 
     @Override
@@ -129,6 +135,7 @@ public class JmsTableFactory implements DynamicTableSourceFactory, DynamicTableS
         Integer mqPort = helper.getOptions().get(MQ_PORT);
         String mqQueueManager = helper.getOptions().get(MQ_QUEUE_MANAGER);
         String mqChannel = helper.getOptions().get(MQ_CHANNEL);
+        boolean exactlyOnce = helper.getOptions().get(EXACTLY_ONCE);
         Map<String, String> queueProps =
                 context.getCatalogTable().getOptions().entrySet().stream()
                         .filter(e -> e.getKey().startsWith(QUEUE_PREFIX))
@@ -176,6 +183,7 @@ public class JmsTableFactory implements DynamicTableSourceFactory, DynamicTableS
         Integer mqPort = helper.getOptions().get(MQ_PORT);
         String mqQueueManager = helper.getOptions().get(MQ_QUEUE_MANAGER);
         String mqChannel = helper.getOptions().get(MQ_CHANNEL);
+        boolean exactlyOnce = helper.getOptions().get(EXACTLY_ONCE);
         Map<String, String> queueProps =
                 context.getCatalogTable().getOptions().entrySet().stream()
                         .filter(e -> e.getKey().startsWith(QUEUE_PREFIX))
@@ -200,6 +208,7 @@ public class JmsTableFactory implements DynamicTableSourceFactory, DynamicTableS
                 mqHost,
                 mqPort,
                 mqQueueManager,
-                mqChannel);
+                mqChannel,
+                exactlyOnce);
     }
 }
