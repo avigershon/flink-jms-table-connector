@@ -183,6 +183,7 @@ public class JmsTableFactory implements DynamicTableSourceFactory, DynamicTableS
         Integer mqPort = helper.getOptions().get(MQ_PORT);
         String mqQueueManager = helper.getOptions().get(MQ_QUEUE_MANAGER);
         String mqChannel = helper.getOptions().get(MQ_CHANNEL);
+        boolean exactlyOnce = helper.getOptions().get(EXACTLY_ONCE);
         Map<String, String> queueProps =
                 context.getCatalogTable().getOptions().entrySet().stream()
                         .filter(e -> e.getKey().startsWith(QUEUE_PREFIX))
