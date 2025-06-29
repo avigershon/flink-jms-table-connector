@@ -5,6 +5,7 @@ import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.apache.flink.table.connector.format.EncodingFormat;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import com.example.jms.JmsExactlyOnceSinkFunction;
+import com.example.jms.JmsSinkFunction;
 import org.apache.flink.table.connector.sink.SinkFunctionProvider;
 import org.apache.flink.table.connector.sink.DynamicTableSink.SinkRuntimeProvider;
 import org.apache.flink.table.data.RowData;
@@ -27,6 +28,7 @@ public class JmsDynamicSink implements DynamicTableSink {
     private final Integer mqPort;
     private final String mqQueueManager;
     private final String mqChannel;
+    private final boolean exactlyOnce;
 
     public JmsDynamicSink(
             EncodingFormat<SerializationSchema<RowData>> encodingFormat,
@@ -40,7 +42,8 @@ public class JmsDynamicSink implements DynamicTableSink {
             String mqHost,
             Integer mqPort,
             String mqQueueManager,
-            String mqChannel) {
+            String mqChannel,
+            boolean exactlyOnce) {
         this.encodingFormat = encodingFormat;
         this.consumedDataType = consumedDataType;
         this.contextFactory = contextFactory;
@@ -53,6 +56,7 @@ public class JmsDynamicSink implements DynamicTableSink {
         this.mqPort = mqPort;
         this.mqQueueManager = mqQueueManager;
         this.mqChannel = mqChannel;
+        this.exactlyOnce = exactlyOnce;
     }
 
     @Override
@@ -65,21 +69,37 @@ public class JmsDynamicSink implements DynamicTableSink {
         SerializationSchema<RowData> serializer =
                 encodingFormat.createRuntimeEncoder(context, consumedDataType);
 
-        JmsExactlyOnceSinkFunction sinkFunction =
-                new JmsExactlyOnceSinkFunction(
-                        serializer,
-                        contextFactory,
-                        providerUrl,
-                        destination,
-                        username,
-                        password,
-                        jndiProperties,
-                        mqHost,
-                        mqPort,
-                        mqQueueManager,
-                        mqChannel);
-
-        return SinkFunctionProvider.of(sinkFunction);
+        if (exactlyOnce) {
+            JmsExactlyOnceSinkFunction sinkFunction =
+                    new JmsExactlyOnceSinkFunction(
+                            serializer,
+                            contextFactory,
+                            providerUrl,
+                            destination,
+                            username,
+                            password,
+                            jndiProperties,
+                            mqHost,
+                            mqPort,
+                            mqQueueManager,
+                            mqChannel);
+            return SinkFunctionProvider.of(sinkFunction);
+        } else {
+            JmsSinkFunction sinkFunction =
+                    new JmsSinkFunction(
+                            serializer,
+                            contextFactory,
+                            providerUrl,
+                            destination,
+                            username,
+                            password,
+                            jndiProperties,
+                            mqHost,
+                            mqPort,
+                            mqQueueManager,
+                            mqChannel);
+            return SinkFunctionProvider.of(sinkFunction);
+        }
     }
 
     @Override
@@ -96,11 +116,14 @@ public class JmsDynamicSink implements DynamicTableSink {
                 mqHost,
                 mqPort,
                 mqQueueManager,
-                mqChannel);
+                mqChannel,
+                exactlyOnce);
     }
 
     @Override
     public String asSummaryString() {
-        return "JMS Table Sink (exactly once)";
+        return exactlyOnce
+                ? "JMS Table Sink (exactly once)"
+                : "JMS Table Sink (at least once)";
     }
 }

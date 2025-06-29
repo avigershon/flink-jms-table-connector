@@ -13,6 +13,9 @@ CREATE TABLE ibm_mq (
   'jms.destination'              = 'MY.QUEUE',
   'jms.username'                = 'myuser',
   'jms.password'                = 'secret',
+  -- disable exactly once semantics if messages should be committed
+  -- without waiting for a Flink checkpoint
+  'jms.exactly-once'            = 'false',
   -- map logical queue names for the JNDI context (optional)
   'queue.MY.QUEUE'             = 'MY.QUEUE',
   'format'                       = 'json'
@@ -34,6 +37,8 @@ CREATE TABLE ibm_mq (
   'jms.mq-port'     = '1414',
   'jms.mq-queue-manager' = 'QMGR',
   'jms.mq-channel' = 'DEV.APP.SVRCONN',
+  -- disable exactly-once semantics if desired
+  'jms.exactly-once' = 'false',
   'format'         = 'json'
 );
 ```
@@ -43,6 +48,9 @@ you to map logical names to JMS queues when using providers like Qpid that
 expect such entries (e.g. `queue.MY.QUEUE = MY.QUEUE`). If `jms.destination`
 is set and no corresponding `queue.<dest>` option is supplied, the connector will
 automatically add `'queue.<dest>' = <dest>`.
+
+Set `'jms.exactly-once' = 'false'` if you want the sink to commit each message
+immediately without waiting for a Flink checkpoint.
 
 The `jms.username` and `jms.password` options are optional and are passed to the
 underlying JMS `ConnectionFactory` when establishing the connection.
