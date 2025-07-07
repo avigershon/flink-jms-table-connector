@@ -17,10 +17,7 @@ import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.functions.sink.TwoPhaseCommitSinkFunction;
 import org.apache.flink.table.data.RowData;
-import org.apache.flink.api.common.ExecutionConfig;
-import org.apache.flink.api.common.typeutils.TypeSerializer;
 import org.apache.flink.api.common.typeutils.base.VoidSerializer;
-import org.apache.flink.api.java.typeutils.TypeExtractor;
 
 /**
  * Exactly-once JMS sink using Flink's TwoPhaseCommitSinkFunction. Messages are
@@ -53,11 +50,7 @@ public class JmsExactlyOnceSinkFunction extends TwoPhaseCommitSinkFunction<RowDa
             Integer mqPort,
             String mqQueueManager,
             String mqChannel) {
-        super(
-                (TypeSerializer<JmsTransaction>)
-                        TypeExtractor.getForClass(JmsTransaction.class)
-                                .createSerializer(new ExecutionConfig()),
-                VoidSerializer.INSTANCE);
+        super(new JmsTransactionSerializer(), VoidSerializer.INSTANCE);
         this.serializer = serializer;
         this.contextFactory = contextFactory;
         this.providerUrl = providerUrl;
@@ -72,9 +65,55 @@ public class JmsExactlyOnceSinkFunction extends TwoPhaseCommitSinkFunction<RowDa
     }
 
     static class JmsTransaction {
-        Connection connection;
-        Session session;
-        MessageProducer producer;
+        transient Connection connection;
+        transient Session session;
+        transient MessageProducer producer;
+    }
+
+    private static class JmsTransactionSerializer
+            extends org.apache.flink.api.common.typeutils.base.TypeSerializerSingleton<JmsTransaction> {
+
+        @Override
+        public boolean isImmutableType() {
+            return false;
+        }
+
+        @Override
+        public JmsTransaction createInstance() {
+            return new JmsTransaction();
+        }
+
+        @Override
+        public JmsTransaction copy(JmsTransaction from) {
+            return from;
+        }
+
+        @Override
+        public JmsTransaction copy(JmsTransaction from, JmsTransaction reuse) {
+            return from;
+        }
+
+        @Override
+        public int getLength() {
+            return 0;
+        }
+
+        @Override
+        public void serialize(JmsTransaction record, java.io.DataOutputView target) {}
+
+        @Override
+        public JmsTransaction deserialize(java.io.DataInputView source) {
+            return new JmsTransaction();
+        }
+
+        @Override
+        public void copy(
+                java.io.DataInputView source, java.io.DataOutputView target) {}
+
+        @Override
+        public boolean canEqual(Object obj) {
+            return obj instanceof JmsTransactionSerializer;
+        }
     }
 
     @Override
@@ -144,7 +183,9 @@ public class JmsExactlyOnceSinkFunction extends TwoPhaseCommitSinkFunction<RowDa
     @Override
     protected void commit(JmsTransaction transaction) {
         try {
-            transaction.session.commit();
+            if (transaction.session != null) {
+                transaction.session.commit();
+            }
         } catch (Exception e) {
             throw new RuntimeException("Failed to commit JMS transaction", e);
         } finally {
@@ -155,7 +196,9 @@ public class JmsExactlyOnceSinkFunction extends TwoPhaseCommitSinkFunction<RowDa
     @Override
     protected void abort(JmsTransaction transaction) {
         try {
-            transaction.session.rollback();
+            if (transaction.session != null) {
+                transaction.session.rollback();
+            }
         } catch (Exception ignore) {
         } finally {
             cleanup(transaction);
