@@ -13,6 +13,9 @@ import com.ibm.msg.client.jakarta.wmq.WMQConstants;
 
 import java.util.Properties;
 
+import org.apache.flink.core.memory.DataInputView;
+import org.apache.flink.core.memory.DataOutputView;
+
 import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.functions.sink.TwoPhaseCommitSinkFunction;
@@ -99,16 +102,15 @@ public class JmsExactlyOnceSinkFunction extends TwoPhaseCommitSinkFunction<RowDa
         }
 
         @Override
-        public void serialize(JmsTransaction record, java.io.DataOutputView target) {}
+        public void serialize(JmsTransaction record, DataOutputView target) {}
 
         @Override
-        public JmsTransaction deserialize(java.io.DataInputView source) {
+        public JmsTransaction deserialize(DataInputView source) {
             return new JmsTransaction();
         }
 
         @Override
-        public void copy(
-                java.io.DataInputView source, java.io.DataOutputView target) {}
+        public void copy(DataInputView source, DataOutputView target) {}
 
         @Override
         public boolean canEqual(Object obj) {
