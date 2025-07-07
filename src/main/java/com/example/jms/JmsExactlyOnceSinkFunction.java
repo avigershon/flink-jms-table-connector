@@ -118,11 +118,6 @@ public class JmsExactlyOnceSinkFunction extends TwoPhaseCommitSinkFunction<RowDa
         public void copy(DataInputView source, DataOutputView target) {}
 
         @Override
-        public boolean canEqual(Object obj) {
-            return obj instanceof JmsTransactionSerializer;
-        }
-
-        @Override
         public org.apache.flink.api.common.typeutils.TypeSerializerSnapshot<JmsTransaction>
                 snapshotConfiguration() {
             return new JmsTransactionSerializerSnapshot();
