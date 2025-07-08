@@ -29,6 +29,7 @@ public class JmsDynamicSink implements DynamicTableSink {
     private final String mqQueueManager;
     private final String mqChannel;
     private final boolean exactlyOnce;
+    private final boolean asyncPut;
 
     public JmsDynamicSink(
             EncodingFormat<SerializationSchema<RowData>> encodingFormat,
@@ -43,7 +44,8 @@ public class JmsDynamicSink implements DynamicTableSink {
             Integer mqPort,
             String mqQueueManager,
             String mqChannel,
-            boolean exactlyOnce) {
+            boolean exactlyOnce,
+            boolean asyncPut) {
         this.encodingFormat = encodingFormat;
         this.consumedDataType = consumedDataType;
         this.contextFactory = contextFactory;
@@ -57,6 +59,7 @@ public class JmsDynamicSink implements DynamicTableSink {
         this.mqQueueManager = mqQueueManager;
         this.mqChannel = mqChannel;
         this.exactlyOnce = exactlyOnce;
+        this.asyncPut = asyncPut;
     }
 
     @Override
@@ -82,7 +85,8 @@ public class JmsDynamicSink implements DynamicTableSink {
                             mqHost,
                             mqPort,
                             mqQueueManager,
-                            mqChannel);
+                            mqChannel,
+                            asyncPut);
             return SinkFunctionProvider.of(sinkFunction);
         } else {
             JmsSinkFunction sinkFunction =
@@ -97,7 +101,8 @@ public class JmsDynamicSink implements DynamicTableSink {
                             mqHost,
                             mqPort,
                             mqQueueManager,
-                            mqChannel);
+                            mqChannel,
+                            asyncPut);
             return SinkFunctionProvider.of(sinkFunction);
         }
     }
@@ -117,7 +122,8 @@ public class JmsDynamicSink implements DynamicTableSink {
                 mqPort,
                 mqQueueManager,
                 mqChannel,
-                exactlyOnce);
+                exactlyOnce,
+                asyncPut);
     }
 
     @Override

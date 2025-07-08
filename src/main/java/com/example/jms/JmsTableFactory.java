@@ -78,6 +78,11 @@ public class JmsTableFactory implements DynamicTableSourceFactory, DynamicTableS
             .booleanType()
             .defaultValue(true);
 
+    public static final ConfigOption<Boolean> ASYNC_PUT = ConfigOptions
+            .key("jms.async.put")
+            .booleanType()
+            .defaultValue(false);
+
     public static final String QUEUE_PREFIX = "queue.";
     public static final ConfigOption<String> QUEUE = ConfigOptions
             .key(QUEUE_PREFIX + "*")
@@ -112,7 +117,8 @@ public class JmsTableFactory implements DynamicTableSourceFactory, DynamicTableS
                 MQ_PORT,
                 MQ_QUEUE_MANAGER,
                 MQ_CHANNEL,
-                EXACTLY_ONCE);
+                EXACTLY_ONCE,
+                ASYNC_PUT);
     }
 
     @Override
@@ -136,6 +142,7 @@ public class JmsTableFactory implements DynamicTableSourceFactory, DynamicTableS
         String mqQueueManager = helper.getOptions().get(MQ_QUEUE_MANAGER);
         String mqChannel = helper.getOptions().get(MQ_CHANNEL);
         boolean exactlyOnce = helper.getOptions().get(EXACTLY_ONCE);
+        boolean asyncPut = helper.getOptions().get(ASYNC_PUT);
         Map<String, String> queueProps =
                 context.getCatalogTable().getOptions().entrySet().stream()
                         .filter(e -> e.getKey().startsWith(QUEUE_PREFIX))
@@ -209,6 +216,7 @@ public class JmsTableFactory implements DynamicTableSourceFactory, DynamicTableS
                 mqPort,
                 mqQueueManager,
                 mqChannel,
-                exactlyOnce);
+                exactlyOnce,
+                asyncPut);
     }
 }
