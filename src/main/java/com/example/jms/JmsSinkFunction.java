@@ -36,6 +36,7 @@ public class JmsSinkFunction extends RichSinkFunction<RowData> {
     private final Integer mqPort;
     private final String mqQueueManager;
     private final String mqChannel;
+    private final boolean asyncPut;
 
     private transient Connection connection;
     private transient Session session;
@@ -52,7 +53,8 @@ public class JmsSinkFunction extends RichSinkFunction<RowData> {
             String mqHost,
             Integer mqPort,
             String mqQueueManager,
-            String mqChannel) {
+            String mqChannel,
+            boolean asyncPut) {
         this.serializer = serializer;
         this.contextFactory = contextFactory;
         this.providerUrl = providerUrl;
@@ -64,6 +66,7 @@ public class JmsSinkFunction extends RichSinkFunction<RowData> {
         this.mqPort = mqPort;
         this.mqQueueManager = mqQueueManager;
         this.mqChannel = mqChannel;
+        this.asyncPut = asyncPut;
     }
 
     @Override
@@ -79,6 +82,12 @@ public class JmsSinkFunction extends RichSinkFunction<RowData> {
             }
             javax.naming.Context ctx = new InitialContext(props);
             ConnectionFactory factory = (ConnectionFactory) ctx.lookup("ConnectionFactory");
+            if (asyncPut && factory instanceof MQConnectionFactory) {
+                ((MQConnectionFactory) factory)
+                        .setIntProperty(
+                                WMQConstants.WMQ_PUT_ASYNC_ALLOWED,
+                                WMQConstants.WMQ_PUT_ASYNC_ALLOWED_ENABLED);
+            }
             Destination destination = (Destination) ctx.lookup(destinationName);
             if (username != null) {
                 connection = factory.createConnection(username, password);
@@ -102,6 +111,11 @@ public class JmsSinkFunction extends RichSinkFunction<RowData> {
                 factory.setChannel(mqChannel);
             }
             factory.setTransportType(WMQConstants.WMQ_CM_CLIENT);
+            if (asyncPut) {
+                factory.setIntProperty(
+                        WMQConstants.WMQ_PUT_ASYNC_ALLOWED,
+                        WMQConstants.WMQ_PUT_ASYNC_ALLOWED_ENABLED);
+            }
 
             if (username != null) {
                 connection = factory.createConnection(username, password);

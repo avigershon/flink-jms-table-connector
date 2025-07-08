@@ -16,6 +16,8 @@ CREATE TABLE ibm_mq (
   -- disable exactly once semantics if messages should be committed
   -- without waiting for a Flink checkpoint
   'jms.exactly-once'            = 'false',
+  -- enable asynchronous puts for IBM MQ
+  'jms.async.put'              = 'true',
   -- map logical queue names for the JNDI context (optional)
   'queue.MY.QUEUE'             = 'MY.QUEUE',
   'format'                       = 'json'
@@ -39,6 +41,8 @@ CREATE TABLE ibm_mq (
   'jms.mq-channel' = 'DEV.APP.SVRCONN',
   -- disable exactly-once semantics if desired
   'jms.exactly-once' = 'false',
+  -- enable asynchronous puts for IBM MQ
+  'jms.async.put'  = 'true',
   'format'         = 'json'
 );
 ```
@@ -51,6 +55,8 @@ automatically add `'queue.<dest>' = <dest>`.
 
 Set `'jms.exactly-once' = 'false'` if you want the sink to commit each message
 immediately without waiting for a Flink checkpoint.
+Set `'jms.async.put' = 'true'` to enable IBM MQ's asynchronous put mode so that
+`send()` and `commit()` return quickly.
 
 The `jms.username` and `jms.password` options are optional and are passed to the
 underlying JMS `ConnectionFactory` when establishing the connection.

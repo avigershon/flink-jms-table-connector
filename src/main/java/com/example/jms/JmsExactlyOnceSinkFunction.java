@@ -40,6 +40,7 @@ public class JmsExactlyOnceSinkFunction extends TwoPhaseCommitSinkFunction<RowDa
     private final Integer mqPort;
     private final String mqQueueManager;
     private final String mqChannel;
+    private final boolean asyncPut;
 
     public JmsExactlyOnceSinkFunction(
             SerializationSchema<RowData> serializer,
@@ -52,7 +53,8 @@ public class JmsExactlyOnceSinkFunction extends TwoPhaseCommitSinkFunction<RowDa
             String mqHost,
             Integer mqPort,
             String mqQueueManager,
-            String mqChannel) {
+            String mqChannel,
+            boolean asyncPut) {
         super(new JmsTransactionSerializer(), VoidSerializer.INSTANCE);
         this.serializer = serializer;
         this.contextFactory = contextFactory;
@@ -65,6 +67,7 @@ public class JmsExactlyOnceSinkFunction extends TwoPhaseCommitSinkFunction<RowDa
         this.mqPort = mqPort;
         this.mqQueueManager = mqQueueManager;
         this.mqChannel = mqChannel;
+        this.asyncPut = asyncPut;
     }
 
     static class JmsTransaction {
@@ -147,6 +150,12 @@ public class JmsExactlyOnceSinkFunction extends TwoPhaseCommitSinkFunction<RowDa
             }
             javax.naming.Context ctx = new InitialContext(props);
             ConnectionFactory factory = (ConnectionFactory) ctx.lookup("ConnectionFactory");
+            if (asyncPut && factory instanceof MQConnectionFactory) {
+                ((MQConnectionFactory) factory)
+                        .setIntProperty(
+                                WMQConstants.WMQ_PUT_ASYNC_ALLOWED,
+                                WMQConstants.WMQ_PUT_ASYNC_ALLOWED_ENABLED);
+            }
             Destination destination = (Destination) ctx.lookup(destinationName);
             if (username != null) {
                 txn.connection = factory.createConnection(username, password);
@@ -170,6 +179,11 @@ public class JmsExactlyOnceSinkFunction extends TwoPhaseCommitSinkFunction<RowDa
                 factory.setChannel(mqChannel);
             }
             factory.setTransportType(WMQConstants.WMQ_CM_CLIENT);
+            if (asyncPut) {
+                factory.setIntProperty(
+                        WMQConstants.WMQ_PUT_ASYNC_ALLOWED,
+                        WMQConstants.WMQ_PUT_ASYNC_ALLOWED_ENABLED);
+            }
 
             if (username != null) {
                 txn.connection = factory.createConnection(username, password);
