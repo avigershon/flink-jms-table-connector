@@ -199,7 +199,14 @@ public class JmsExactlyOnceSourceFunction extends RichParallelSourceFunction<Row
     @Override
     public void notifyCheckpointComplete(long checkpointId) throws Exception {
         if (session != null) {
+            long start = System.currentTimeMillis();
+            System.out.println(
+                    "Committing JMS session for checkpoint " + checkpointId + "...");
             session.commit();
+            System.out.println(
+                    "JMS session commit finished in "
+                            + (System.currentTimeMillis() - start)
+                            + " ms");
         }
     }
 }

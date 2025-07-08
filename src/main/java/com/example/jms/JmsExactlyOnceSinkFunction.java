@@ -213,11 +213,18 @@ public class JmsExactlyOnceSinkFunction extends TwoPhaseCommitSinkFunction<RowDa
 
     @Override
     protected void commit(JmsTransaction transaction) {
+        long start = System.currentTimeMillis();
+        System.out.println("Starting JMS commit...");
         try {
             if (transaction.session != null) {
                 transaction.session.commit();
             }
+            System.out.println(
+                    "JMS commit finished in "
+                            + (System.currentTimeMillis() - start)
+                            + " ms");
         } catch (Exception e) {
+            System.err.println("Failed to commit JMS transaction: " + e.getMessage());
             throw new RuntimeException("Failed to commit JMS transaction", e);
         } finally {
             cleanup(transaction);
