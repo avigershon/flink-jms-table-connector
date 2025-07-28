@@ -19,6 +19,7 @@ import org.apache.flink.table.factories.EncodingFormatFactory;
 import org.apache.flink.table.factories.FactoryUtil;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.DataType;
+import com.example.jms.format.XmlJsonFormatFactory;
 
 /**
  * Factory for JMS table connector.
@@ -83,6 +84,11 @@ public class JmsTableFactory implements DynamicTableSourceFactory, DynamicTableS
             .booleanType()
             .defaultValue(false);
 
+    public static final ConfigOption<Boolean> XML_TO_JSON = ConfigOptions
+            .key("jms.xml-to-json")
+            .booleanType()
+            .defaultValue(false);
+
     public static final String QUEUE_PREFIX = "queue.";
     public static final ConfigOption<String> QUEUE = ConfigOptions
             .key(QUEUE_PREFIX + "*")
@@ -118,17 +124,26 @@ public class JmsTableFactory implements DynamicTableSourceFactory, DynamicTableS
                 MQ_QUEUE_MANAGER,
                 MQ_CHANNEL,
                 EXACTLY_ONCE,
-                ASYNC_PUT);
+                ASYNC_PUT,
+                XML_TO_JSON);
     }
 
     @Override
     public DynamicTableSource createDynamicTableSource(Context context) {
         FactoryUtil.TableFactoryHelper helper = FactoryUtil.createTableFactoryHelper(this, context);
 
-        DecodingFormat<DeserializationSchema<RowData>> decodingFormat =
-                helper.discoverDecodingFormat(
-                        DecodingFormatFactory.class,
-                        FactoryUtil.FORMAT);
+        boolean xmlToJson = helper.getOptions().get(XML_TO_JSON);
+        DecodingFormat<DeserializationSchema<RowData>> decodingFormat;
+        if (xmlToJson) {
+            // convert XML payloads to JSON before delegating to Flink's JSON deserializer
+            XmlJsonFormatFactory xmlFactory = new XmlJsonFormatFactory();
+            decodingFormat = xmlFactory.createDecodingFormat(context, helper.getOptions());
+        } else {
+            decodingFormat =
+                    helper.discoverDecodingFormat(
+                            DecodingFormatFactory.class,
+                            FactoryUtil.FORMAT);
+        }
 
         DataType dataType = context.getCatalogTable().getResolvedSchema().toPhysicalRowDataType();
 
