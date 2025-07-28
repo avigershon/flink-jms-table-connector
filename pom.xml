@@ -147,6 +147,7 @@
                   <include>com.rabbitmq:amqp-client</include>
                   <include>com.ibm.mq:com.ibm.mq.allclient</include>
                   <include>io.netty:netty-*</include>
+                  <include>org.json:json</include>
                 </includes>
               </artifactSet>
 
