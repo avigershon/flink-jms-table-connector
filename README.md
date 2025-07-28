@@ -57,6 +57,8 @@ Set `'jms.exactly-once' = 'false'` if you want the sink to commit each message
 immediately without waiting for a Flink checkpoint.
 Set `'jms.async.put' = 'true'` to enable IBM MQ's asynchronous put mode so that
 `send()` and `commit()` return quickly.
+Set `'jms.xml-to-json' = 'true'` if incoming JMS messages contain XML payloads
+that should be converted to JSON before being deserialized by the connector.
 
 The `jms.username` and `jms.password` options are optional and are passed to the
 underlying JMS `ConnectionFactory` when establishing the connection.
