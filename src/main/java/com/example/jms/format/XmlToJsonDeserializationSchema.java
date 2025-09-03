@@ -45,7 +45,8 @@ public class XmlToJsonDeserializationSchema implements DeserializationSchema<Row
         try {
             String xml = new String(message, StandardCharsets.UTF_8);
             XMLParserConfiguration config = new XMLParserConfiguration()
-                    .withForceList(Collections.singletonList("item"));
+                    .withForceList(Collections.singleton("item"));
+
             JSONObject jsonObject = XML.toJSONObject(xml, config);
             byte[] jsonBytes = jsonObject.toString().getBytes(StandardCharsets.UTF_8);
             return jsonDeserializer.deserialize(jsonBytes);
