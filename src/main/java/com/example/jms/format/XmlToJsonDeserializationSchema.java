@@ -10,9 +10,11 @@ import org.apache.flink.formats.common.TimestampFormat;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
-import org.json.JSONArray;
+import java.util.Collections;
+
 import org.json.JSONObject;
 import org.json.XML;
+import org.json.XMLParserConfiguration;
 
 /**
  * DeserializationSchema that converts XML payloads to JSON and then delegates
@@ -42,34 +44,13 @@ public class XmlToJsonDeserializationSchema implements DeserializationSchema<Row
     public RowData deserialize(byte[] message) throws IOException {
         try {
             String xml = new String(message, StandardCharsets.UTF_8);
-            JSONObject jsonObject = XML.toJSONObject(xml);
-            normalizeItemArrays(jsonObject);
+            XMLParserConfiguration config = new XMLParserConfiguration()
+                    .withForceList(Collections.singleton("item"));
+            JSONObject jsonObject = XML.toJSONObject(xml, config);
             byte[] jsonBytes = jsonObject.toString().getBytes(StandardCharsets.UTF_8);
             return jsonDeserializer.deserialize(jsonBytes);
         } catch (Exception e) {
             throw new IOException("Failed to convert XML to JSON", e);
-        }
-    }
-
-    private void normalizeItemArrays(Object node) {
-        if (node instanceof JSONObject) {
-            JSONObject json = (JSONObject) node;
-            if (json.has("item")) {
-                Object item = json.get("item");
-                if (item instanceof JSONObject) {
-                    JSONArray array = new JSONArray();
-                    array.put(item);
-                    json.put("item", array);
-                }
-            }
-            for (String key : json.keySet()) {
-                normalizeItemArrays(json.get(key));
-            }
-        } else if (node instanceof JSONArray) {
-            JSONArray array = (JSONArray) node;
-            for (int i = 0; i < array.length(); i++) {
-                normalizeItemArrays(array.get(i));
-            }
         }
     }
 
